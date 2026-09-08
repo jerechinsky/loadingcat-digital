@@ -43,6 +43,10 @@
           {
             "label": "10",
             "value": "10"
+          },
+          {
+            "label": "12",
+            "value": "12"
           }
         ]
       },
@@ -115,6 +119,225 @@
             "value": "1"
           }
         ]
+      },
+      {
+        "type": "toggle",
+        "messageKey": "NIGHT_PAUSE",
+        "label": "Pause animation at night",
+        "defaultValue": false
+      },
+      {
+        "type": "select",
+        "messageKey": "NIGHT_START",
+        "label": "Pause from",
+        "defaultValue": "22",
+        "options": [
+          {
+            "label": "00:00",
+            "value": "0"
+          },
+          {
+            "label": "01:00",
+            "value": "1"
+          },
+          {
+            "label": "02:00",
+            "value": "2"
+          },
+          {
+            "label": "03:00",
+            "value": "3"
+          },
+          {
+            "label": "04:00",
+            "value": "4"
+          },
+          {
+            "label": "05:00",
+            "value": "5"
+          },
+          {
+            "label": "06:00",
+            "value": "6"
+          },
+          {
+            "label": "07:00",
+            "value": "7"
+          },
+          {
+            "label": "08:00",
+            "value": "8"
+          },
+          {
+            "label": "09:00",
+            "value": "9"
+          },
+          {
+            "label": "10:00",
+            "value": "10"
+          },
+          {
+            "label": "11:00",
+            "value": "11"
+          },
+          {
+            "label": "12:00",
+            "value": "12"
+          },
+          {
+            "label": "13:00",
+            "value": "13"
+          },
+          {
+            "label": "14:00",
+            "value": "14"
+          },
+          {
+            "label": "15:00",
+            "value": "15"
+          },
+          {
+            "label": "16:00",
+            "value": "16"
+          },
+          {
+            "label": "17:00",
+            "value": "17"
+          },
+          {
+            "label": "18:00",
+            "value": "18"
+          },
+          {
+            "label": "19:00",
+            "value": "19"
+          },
+          {
+            "label": "20:00",
+            "value": "20"
+          },
+          {
+            "label": "21:00",
+            "value": "21"
+          },
+          {
+            "label": "22:00",
+            "value": "22"
+          },
+          {
+            "label": "23:00",
+            "value": "23"
+          }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "NIGHT_END",
+        "label": "Resume at",
+        "defaultValue": "7",
+        "options": [
+          {
+            "label": "00:00",
+            "value": "0"
+          },
+          {
+            "label": "01:00",
+            "value": "1"
+          },
+          {
+            "label": "02:00",
+            "value": "2"
+          },
+          {
+            "label": "03:00",
+            "value": "3"
+          },
+          {
+            "label": "04:00",
+            "value": "4"
+          },
+          {
+            "label": "05:00",
+            "value": "5"
+          },
+          {
+            "label": "06:00",
+            "value": "6"
+          },
+          {
+            "label": "07:00",
+            "value": "7"
+          },
+          {
+            "label": "08:00",
+            "value": "8"
+          },
+          {
+            "label": "09:00",
+            "value": "9"
+          },
+          {
+            "label": "10:00",
+            "value": "10"
+          },
+          {
+            "label": "11:00",
+            "value": "11"
+          },
+          {
+            "label": "12:00",
+            "value": "12"
+          },
+          {
+            "label": "13:00",
+            "value": "13"
+          },
+          {
+            "label": "14:00",
+            "value": "14"
+          },
+          {
+            "label": "15:00",
+            "value": "15"
+          },
+          {
+            "label": "16:00",
+            "value": "16"
+          },
+          {
+            "label": "17:00",
+            "value": "17"
+          },
+          {
+            "label": "18:00",
+            "value": "18"
+          },
+          {
+            "label": "19:00",
+            "value": "19"
+          },
+          {
+            "label": "20:00",
+            "value": "20"
+          },
+          {
+            "label": "21:00",
+            "value": "21"
+          },
+          {
+            "label": "22:00",
+            "value": "22"
+          },
+          {
+            "label": "23:00",
+            "value": "23"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "night-note",
+        "defaultValue": "Pauses wrist-flick and backlight spins during these local hours. The seconds indicator keeps running. Matching start and end times mean no pause."
       }
     ]
   },
@@ -238,6 +461,6 @@
   },
   {
     "type": "text",
-    "defaultValue": "Original Loading Cat by <a href=\"https://github.com/zbzbw/loadingcat-pebble\">zbw / zbzbw</a>. Digital adaptation by yerekhinsky. Teko and Bebas Neue: SIL Open Font License. Square numerals: original geometry for this project. Weather by <a href=\"https://open-meteo.com/\">Open-Meteo</a> (CC BY 4.0)."
+    "defaultValue": "Original Loading Cat by <a href=\"https://github.com/zbzbw/loadingcat-pebble\">zbw / zbzbw</a>. Digital adaptation by yerex. Teko and Bebas Neue: SIL Open Font License. Square numerals: original geometry for this project. Weather by <a href=\"https://open-meteo.com/\">Open-Meteo</a> (CC BY 4.0)."
   }
 ]

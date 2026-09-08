@@ -105,8 +105,8 @@ p=phone({defer:true});refresh(p);p.timeout();p.resolve();assert.equal(p.requests
 // Exercise every declared setting choice through the real normalization/save path.
 const config=JSON.parse(fs.readFileSync(__dirname+'/../src/pkjs/config.json','utf8'));
 const publicSettings=config.flatMap(section=>section.items||[]).filter(spec=>spec.messageKey);
-assert.equal(publicSettings.length,15,'The public menu only exposes supported presentation choices');
-assert.deepEqual(publicSettings.find(spec=>spec.messageKey==='SPOKES').options.map(option=>Number(option.value)),[6,7,8,10]);
+assert.equal(publicSettings.length,18,'The public menu only exposes supported presentation choices');
+assert.deepEqual(publicSettings.find(spec=>spec.messageKey==='SPOKES').options.map(option=>Number(option.value)),[6,7,8,10,12]);
 for(const section of config)for(const spec of section.items||[])if(spec.messageKey){
  for(const value of spec.type==='toggle'?[0,1]:spec.options.map(o=>Number(o.value))){
   p=phone();p.events.webviewclosed({response:JSON.stringify({[spec.messageKey]:{value}})});
@@ -118,18 +118,18 @@ console.log('All setting choices and late weather cancellation callbacks passed.
 // Retired visual options cannot hide the clock or restore low-contrast layouts.
 const retiredSettings={STYLE:2,SHOW_TIME:0,TIME_LAYOUT:1,FONT_STYLE:1,COMPACT:1,DARK_TEXT:0,OUTLINE:0};
 const preservedSettings={SPIN_LENGTH:2,SPIN_MOTION:0,NUMERAL_FONT:7,SHOW_WEATHER:0,TIME_FORMAT:2,LEADING_ZERO:0,FAHRENHEIT:1,WEATHER_INTERVAL:60,GRAY_NOSE:0,SECOND_HAND:0};
-for(const spokes of [0,12]){
+for(const spokes of [0,11]){
  p=phone({settings:{...retiredSettings,...preservedSettings,SPOKES:spokes}});p.events.ready();
  assert.equal(p.messages[0].SPOKES,8,'Retired spoke counts migrate to eight');
  for(const key of Object.keys(retiredSettings))assert.equal(p.messages[0][key],undefined,key+' must not reach the watch');
  for(const [key,value] of Object.entries(preservedSettings))assert.equal(p.messages[0][key],value,key+' must survive migration');
  assert.equal(p.positions,0,'Hidden weather remains hidden after migration');
  // Saving a new page permanently strips old keys and retains all valid choices.
- p.events.webviewclosed({response:JSON.stringify({...retiredSettings,SPOKES:{value:'12'}})});
+ p.events.webviewclosed({response:JSON.stringify({...retiredSettings,SPOKES:{value:'11'}})});
  assert.equal(p.savedSettings.SPOKES,8);
  for(const key of Object.keys(retiredSettings))assert.equal(p.savedSettings[key],undefined,key+' must not remain in saved settings');
  for(const [key,value] of Object.entries(preservedSettings))assert.equal(p.savedSettings[key],value,key+' must survive saving');
- assert.equal(Object.keys(p.savedSettings).length,15);
+ assert.equal(Object.keys(p.savedSettings).length,18);
 }
 // Existing installs receive the new monochrome treatment until explicitly disabled.
 p=phone({settings:{NUMERAL_FONT:2,SHOW_WEATHER:0}});p.events.ready();assert.equal(p.messages[0].GRAY_NOSE,1);
@@ -141,7 +141,15 @@ p.events.webviewclosed({response:JSON.stringify({SECOND_HAND:{value:false}})});a
 p.events.webviewclosed({response:JSON.stringify({SECOND_HAND:{value:'2'}})});assert.equal(p.savedSettings.SECOND_HAND,0,'Invalid seconds values must not re-enable the setting');
 assert.equal(p.savedSettings.GRAY_NOSE,0);assert.equal(p.savedSettings.ANIMATE,0);assert.equal(p.savedSettings.SHOW_WEATHER,0);
 // A rejected count must not overwrite a currently supported selection either.
-p=phone({settings:{SPOKES:7}});p.events.webviewclosed({response:JSON.stringify({SPOKES:12})});assert.equal(p.savedSettings.SPOKES,7);
+p=phone({settings:{SPOKES:7}});p.events.webviewclosed({response:JSON.stringify({SPOKES:11})});assert.equal(p.savedSettings.SPOKES,7);
 const keys=JSON.parse(fs.readFileSync(__dirname+'/../package.json','utf8')).pebble.messageKeys;
 for(const [key,index] of Object.entries({STYLE:4,SHOW_TIME:11,TIME_FORMAT:12,LEADING_ZERO:13,FONT_STYLE:14,COMPACT:15,DARK_TEXT:16,OUTLINE:17,SHOW_WEATHER:18,FAHRENHEIT:19,WEATHER_INTERVAL:20,TIME_LAYOUT:21,NUMERAL_FONT:22,SPIN_MOTION:23,GRAY_NOSE:24,SECOND_HAND:25}))assert.equal(keys.indexOf(key),index,key+' must retain its AppMessage identity');
 console.log('Retired settings migrate, preferences persist, and message-key identities are stable.');
+
+// Twelve spokes is supported, including saved preferences from older versions.
+p=phone({settings:{SPOKES:12}});p.events.ready();assert.equal(p.messages[0].SPOKES,12);
+p.events.webviewclosed({response:JSON.stringify({SPOKES:12})});assert.equal(p.savedSettings.SPOKES,12);
+
+p=phone();p.events.ready();assert.equal(p.messages[0].NIGHT_PAUSE,0);assert.equal(p.messages[0].NIGHT_START,22);assert.equal(p.messages[0].NIGHT_END,7);
+p.events.webviewclosed({response:JSON.stringify({NIGHT_PAUSE:1,NIGHT_START:23,NIGHT_END:8})});assert.equal(p.savedSettings.NIGHT_PAUSE,1);assert.equal(p.savedSettings.NIGHT_START,23);assert.equal(p.savedSettings.NIGHT_END,8);
+for(const [key,index] of Object.entries({NIGHT_PAUSE:26,NIGHT_START:27,NIGHT_END:28}))assert.equal(keys.indexOf(key),index);

@@ -1,7 +1,7 @@
 {
   "name": "loadingcat-digital",
-  "author": "yerekhinsky (original by zbw / zbzbw)",
-  "version": "1.5.2",
+  "author": "yerex (original by zbw / zbzbw)",
+  "version": "1.5.3",
   "keywords": [
     "pebble-app"
   ],
@@ -296,7 +296,10 @@
       "NUMERAL_FONT",
       "SPIN_MOTION",
       "GRAY_NOSE",
-      "SECOND_HAND"
+      "SECOND_HAND",
+      "NIGHT_PAUSE",
+      "NIGHT_START",
+      "NIGHT_END"
     ]
   }
 }

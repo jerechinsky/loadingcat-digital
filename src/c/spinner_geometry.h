@@ -2,15 +2,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-// Quantized unit vectors keep every small pixel edge identical in the preview.
-static const int16_t SPINNER_VECTORS[4][10][2] = {
+// Quantized unit vectors give straight, evenly spaced spokes at small pixel sizes.
+static const int16_t SPINNER_VECTORS[5][12][2] = {
   {{0,-1000},{866,-500},{866,500},{0,1000},{-866,500},{-866,-500}},
   {{0,-1000},{782,-623},{975,223},{434,901},{-434,901},{-975,223},{-782,-623}},
   {{0,-1000},{707,-707},{1000,0},{707,707},{0,1000},{-707,707},{-1000,0},{-707,-707}},
-  {{0,-1000},{588,-809},{951,-309},{951,309},{588,809},{0,1000},{-588,809},{-951,309},{-951,-309},{-588,-809}}
+  {{0,-1000},{588,-809},{951,-309},{951,309},{588,809},{0,1000},{-588,809},{-951,309},{-951,-309},{-588,-809}},
+  {{0,-1000},{500,-866},{866,-500},{1000,0},{866,500},{500,866},{0,1000},{-500,866},{-866,500},{-1000,0},{-866,-500},{-500,-866}}
 };
 static inline const int16_t *spinner_vector(int count,int spoke) {
-  return SPINNER_VECTORS[count==6?0:(count==7?1:(count==10?3:2))][spoke];
+  return SPINNER_VECTORS[count==6?0:(count==7?1:(count==12?4:(count==10?3:2)))][spoke];
 }
 static inline int spinner_bucket(int phase,int spoke,int direction,int count) {
   return (((phase-spoke)*direction+count)%count)*8/count;

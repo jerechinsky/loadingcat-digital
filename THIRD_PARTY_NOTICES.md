@@ -1,6 +1,6 @@
 # Credits and third-party notices
 
-Original watchface, concept and supplied cat assets: **zbw / zbzbw**, https://github.com/zbzbw/loadingcat-pebble. Digital adaptation: **jerechinsky**.
+Original watchface, concept and supplied cat assets: **zbw / zbzbw**, https://github.com/zbzbw/loadingcat-pebble. Digital adaptation: **yerex**.
 
 The original repository has no license file or general redistribution permission in its README, checked 2026-09-08. Author credit does not add a license. See `UPSTREAM.md`.
 

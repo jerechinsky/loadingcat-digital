@@ -3,7 +3,7 @@
 Original project: **Loading Cat Pebble Watchface**, by **zbw / zbzbw**.
 https://github.com/zbzbw/loadingcat-pebble
 
-Adapted from commit `0905b4f97d3d458831ac0fb9b724978bb84244fc`. The original cat image files remain unchanged. jerechinsky's digital adaptation adds the stacked digital clock, optional weather, coasting animation, font choices and offline settings form.
+Adapted from commit `0905b4f97d3d458831ac0fb9b724978bb84244fc`. The original cat image files remain unchanged. yerex's digital adaptation adds the stacked digital clock, optional weather, coasting animation, font choices and offline settings form.
 
 Checked on 2026-09-08: the upstream root has no LICENSE file, and its README contains no general permission to redistribute derivatives. It invites importing the project into CloudPebble to build/run it. That is not an explicit marketplace redistribution grant. The supplied image is described there as based on the loading-cat meme; the repository does not provide separate artwork licensing information.
 

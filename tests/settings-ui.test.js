@@ -16,7 +16,7 @@ function phone(saved={},platform='emery'){
  return {fire,store,messages,html(){fire('showConfiguration');assert(url.startsWith('data:text/html'));return decodeURIComponent(url.slice(url.indexOf(',')+1));}};
 }
 (async()=>{
- assert.equal(Object.keys(specs).length,15);
+ assert.equal(Object.keys(specs).length,18);
  assert.doesNotMatch(bundle,/cat-preview-canvas|cat-preview-seconds|Live watchface preview/,'Development preview is absent from the shipped bundle');
  for(const retired of ['STYLE','SHOW_TIME','TIME_LAYOUT','FONT_STYLE','COMPACT','DARK_TEXT','OUTLINE'])assert(!Object.hasOwn(specs,retired),retired+' is not a public setting');
  const browser=await chromium.launch({headless:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});
@@ -32,19 +32,24 @@ function phone(saved={},platform='emery'){
  async function set(k,v){if(specs[k].type==='toggle')await field(k).evaluate((e,v)=>{e.checked=!!v;e.dispatchEvent(new Event('change',{bubbles:true}));},v);else await field(k).selectOption(String(v));}
  async function save(ph){await page.getByRole('button',{name:'Save settings'}).click();await page.waitForURL('https://settings.test/close#**');ph.fire('webviewclosed',{response:page.url().split('#')[1]});return JSON.parse(ph.store['loading-cat-settings-v1']);}
  async function checkStock(){
-  assert.equal(await page.locator('input[data-manipulator-target],select[data-manipulator-target]').count(),15);
+  assert.equal(await page.locator('input[data-manipulator-target],select[data-manipulator-target]').count(),18);
   assert.equal(await page.locator('canvas,.cat-preview,.cat-reset,input[type=time],input[type=range],[id^="cat-preview-"]').count(),0);
   assert.equal(await page.getByRole('button').count(),1,'Save is the only button');
   assert.equal(await page.getByRole('button',{name:'Save settings'}).count(),1);
   assert.doesNotMatch(await page.locator('body').innerText(),/Example time|Example seconds|Play seconds|Pause seconds|Test animation|Reset to defaults|Live preview|Browser demo/);
-  assert.match(await page.locator('body').innerText(),/Digital adaptation by yerekhinsky\./);
+  assert.match(await page.locator('body').innerText(),/Digital adaptation by yerex\./);
   assert.equal(await page.getByRole('link',{name:'zbw / zbzbw'}).getAttribute('href'),'https://github.com/zbzbw/loadingcat-pebble');
  }
  let ph=phone();const defaultHtml=ph.html();await load(defaultHtml);await checkStock();
  for(const [k,v] of Object.entries(defaults))assert.equal(await value(k),v,k+' default');
  assert.equal(await value('SPOKES'),8);assert.equal(await value('SPIN_MOTION'),1);assert.equal(await value('SPIN_LENGTH'),0);assert.equal(await value('SECOND_HAND'),1);
+ assert.equal(await value('NIGHT_PAUSE'),0);
+ assert(!await row('NIGHT_START').isVisible());
+ await set('NIGHT_PAUSE',1);assert(await row('NIGHT_START').isVisible());assert(await row('NIGHT_END').isVisible());
+ await set('ANIMATE',0);assert(!await row('NIGHT_START').isVisible());await set('ANIMATE',1);
+ await set('NIGHT_PAUSE',0);
  const options=key=>field(key).locator('option').evaluateAll(es=>es.map(e=>[e.value,e.textContent]));
- assert.deepEqual(await options('SPOKES'),[['6','6'],['7','7'],['8','8'],['10','10']]);
+ assert.deepEqual(await options('SPOKES'),[['6','6'],['7','7'],['8','8'],['10','10'],['12','12']]);
  assert.deepEqual(await options('NUMERAL_FONT'),[['0','Teko'],['2','Bebas Neue'],['7','Square'],['8','Square Cut']]);
  assert.deepEqual(await options('SPIN_MOTION'),[['0','Slow loading'],['1','Fast spin']]);
  assert.deepEqual(await options('SPIN_LENGTH'),[['2','2 seconds'],['0','3 seconds'],['1','4 seconds']]);
@@ -80,7 +85,7 @@ function phone(saved={},platform='emery'){
   for(const choice of choices){await set(k,choice);assert.equal(await value(k),choice,k+' choice');}
   exercised[k]=choices;
  }
- const expected={SECOND_HAND:0,GRAY_NOSE:0,SHOW_WEATHER:0,SHOW_SPINNER:0,NUMERAL_FONT:8,TIME_FORMAT:2,LEADING_ZERO:0,SPOKES:7,SPIN_MOTION:0,ANIMATE:0,FLICK_TRIGGER:0,LIGHT_TRIGGER:0,SPIN_LENGTH:2,FAHRENHEIT:1,WEATHER_INTERVAL:60};
+ const expected={NIGHT_PAUSE:1,NIGHT_START:23,NIGHT_END:8,SECOND_HAND:0,GRAY_NOSE:0,SHOW_WEATHER:0,SHOW_SPINNER:0,NUMERAL_FONT:8,TIME_FORMAT:2,LEADING_ZERO:0,SPOKES:12,SPIN_MOTION:0,ANIMATE:0,FLICK_TRIGGER:0,LIGHT_TRIGGER:0,SPIN_LENGTH:2,FAHRENHEIT:1,WEATHER_INTERVAL:60};
  // Set hidden select values directly, as saved preferences can remain hidden.
  for(const [k,v] of Object.entries(expected))await field(k).evaluate((e,v)=>{if(e.type==='checkbox')e.checked=!!v;else e.value=String(v);e.dispatchEvent(new Event('change',{bubbles:true}));},v);
  assert.deepEqual(await save(ph),expected);ph=phone(ph.store,'flint');await load(ph.html());for(const [k,v] of Object.entries(expected))assert.equal(await value(k),v,k+' persists');
@@ -90,7 +95,7 @@ function phone(saved={},platform='emery'){
  await load(demo);await checkStock();
  fs.writeFileSync(path.join(out,'settings.html'),demo);fs.writeFileSync(path.join(out,'settings-preview.html'),demo);
  assert.deepEqual(requests,[]);assert.deepEqual(errors,[]);
- fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify({settings:15,stock_clay:true,preview_absent:true,custom_chrome_absent:true,models:7,breakpoints:[320,390,480],offline:true,save_and_reopen:true,all_options:true,conditional_visibility:true,model_capabilities:true,hidden_preferences_preserved:true,capability_checks:capabilityChecks,choices_tested:exercised},null,2)+'\n');
- console.log('Stock Clay checks passed:15 settings, all choices,7 model capabilities, conditional visibility, hidden preference persistence, offline load and responsive form.');
+ fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify({settings:18,stock_clay:true,preview_absent:true,custom_chrome_absent:true,models:7,breakpoints:[320,390,480],offline:true,save_and_reopen:true,all_options:true,conditional_visibility:true,model_capabilities:true,hidden_preferences_preserved:true,capability_checks:capabilityChecks,choices_tested:exercised},null,2)+'\n');
+ console.log('Stock Clay checks passed:18 settings, all choices,7 model capabilities, conditional visibility, hidden preference persistence, offline load and responsive form.');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -1,10 +1,10 @@
-Technical notes from version 1.5.1. Version 1.5.2 changes the bundled author credit only.
+Most layout notes below describe version 1.5.1. Version 1.5.3 adds 12 spokes, adjustable nighttime animation pauses and live seconds alignment on repeated flicks. Credits now use yerex; the GitHub account stays jerechinsky. Current options and release checks are in README.md and PUBLISHING.md.
 
 # Loading Cat Digital
 
 A digital adaptation of [Loading Cat by zbw / zbzbw](https://github.com/zbzbw/loadingcat-pebble), retaining the original cat artwork and concept.
 
-**Thanks to zbw / zbzbw for the original analog watchface and cat artwork.** This digital adaptation is by **yerekhinsky** ([jerechinsky on GitHub](https://github.com/jerechinsky)). [Visit the original project](https://github.com/zbzbw/loadingcat-pebble).
+**Thanks to zbw / zbzbw for the original analog watchface and cat artwork.** This digital adaptation is by **yerex** ([jerechinsky on GitHub](https://github.com/jerechinsky)). [Visit the original project](https://github.com/zbzbw/loadingcat-pebble).
 
 [Get it on the Pebble Store](https://apps.repebble.com/6f5289e6cd7f4ae7b666cb7f) · [Download the latest release](https://github.com/jerechinsky/loadingcat-digital/releases/latest)
 
@@ -135,7 +135,7 @@ Build/emulator checks do not verify physical wrist sensitivity, phone permission
 
 ## Credits and redistribution
 
-Original watchface and cat assets: **zbw / zbzbw**, [loadingcat-pebble](https://github.com/zbzbw/loadingcat-pebble). Digital adaptation by **yerekhinsky** ([jerechinsky on GitHub](https://github.com/jerechinsky)). The original author remains credited in the manifest.
+Original watchface and cat assets: **zbw / zbzbw**, [loadingcat-pebble](https://github.com/zbzbw/loadingcat-pebble). Digital adaptation by **yerex** ([jerechinsky on GitHub](https://github.com/jerechinsky)). The original author remains credited in the manifest.
 
 Numeral choices: **Teko**, **Bebas Neue**, **Square** and **Square Cut**. Bebas Neue is the default.
 

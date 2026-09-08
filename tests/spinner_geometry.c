@@ -2,10 +2,13 @@
 #include <stdio.h>
 #include "../src/c/spinner_geometry.h"
 int main(void) {
-  int counts[]={6,7,8,10};
-  for(int k=0;k<4;k++)for(int phase=0;phase<counts[k];phase++)for(int dir=-1;dir<=1;dir+=2) {
+  int counts[]={6,7,8,10,12};
+  for(int k=0;k<5;k++)for(int phase=0;phase<counts[k];phase++)for(int dir=-1;dir<=1;dir+=2) {
     int white=0;
     for(int i=0;i<counts[k];i++) {
+      const int16_t *v=spinner_vector(counts[k],i);
+      int norm=v[0]*v[0]+v[1]*v[1];
+      assert(norm>995000 && norm<1005000);
       int b=spinner_bucket(phase,i,dir,counts[k]);
       assert(b>=0 && b<8);
       assert(spinner_length(b)>=12 && spinner_length(b)<=16);

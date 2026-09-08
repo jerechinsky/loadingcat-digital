@@ -3,33 +3,58 @@
 Only uses a headless emulator; never connects to a physical watch.
 Screenshots use fixed 12:30 / 22 C fixtures, not a real weather observation.
 """
-import argparse, atexit, datetime, json, math, time, uuid
+import argparse, atexit, datetime, json, math, os, signal, socket, time, uuid
 from pathlib import Path
 from PIL import Image, ImageDraw
 from libpebble2.communication import PebbleConnection
 from libpebble2.services.appmessage import AppMessageService, Int32
 from libpebble2.services.screenshot import Screenshot
+from libpebble2.protocol.system import TimeMessage, GetTimeRequest
+from libpebble2.protocol.logs import AppLogMessage, AppLogShippingControl
 from libpebble2.communication.transports.qemu.protocol import QemuTap, QemuButton
 from pebble_tool.commands.emucontrol import send_data_to_qemu
 from pebble_tool.commands.screenshot import ScreenshotCommand
 from pebble_tool.sdk.emulator import ManagedEmulatorTransport
+from pebble_tool.sdk import sdk_manager
 
 p = argparse.ArgumentParser()
 p.add_argument('--platform', required=True)
 p.add_argument('--output', type=Path, required=True)
 p.add_argument('--animate', action='store_true')
 p.add_argument('--shutdown', action='store_true')
+p.add_argument('--direct', action='store_true', help='Run native tests without the phone simulator resetting the fixture clock')
+p.add_argument('--monitor-capture', action='store_true', help='Read the emulator framebuffer through its QEMU monitor')
+p.add_argument('--install', action='store_true', help='Install the current build before capturing')
 p.add_argument('--settings-check', action='store_true')
 p.add_argument('--font-check', action='store_true')
 p.add_argument('--seconds-check', action='store_true')
+p.add_argument('--spokes-check', action='store_true', help='Check 12-spoke layout and live seconds handoffs')
 args = p.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 root = Path(__file__).resolve().parents[1]
 meta = json.loads((root / 'build/appinfo.json').read_text())
 keys = meta['messageKeys']
-transport = ManagedEmulatorTransport(args.platform, '4.33.1', True)
+os.environ['PEBBLE_QEMU_REAL'] = str(Path(sdk_manager.root_path_for_sdk('4.33.1'))/'toolchain/bin/qemu-pebble')
+os.environ['PEBBLE_QEMU_PATH'] = str(root/'tools/headless_qemu.py')
+transport = ManagedEmulatorTransport(args.platform, '4.33.1', False)
 watch = PebbleConnection(transport)
 watch.connect(); watch.run_async()
+if args.install:
+    from pebble_tool.commands.install import ToolAppInstaller
+    ToolAppInstaller(watch, str(root/'build/loadingcat-pebble.pbw')).install()
+    time.sleep(1)
+if args.direct:
+    from libpebble2.communication.transports.qemu import QemuTransport, MessageTargetQemu
+    from libpebble2.communication.transports.qemu.protocol import QemuBluetoothConnection
+    managed=transport
+    ScreenshotCommand._close_pebble_connection(watch)
+    os.kill(managed.pypkjs_pid,signal.SIGTERM)
+    time.sleep(.5)
+    transport=QemuTransport(port=managed.qemu_port)
+    transport.qemu_monitor_port=managed.qemu_monitor_port
+    watch=PebbleConnection(transport);watch.connect()
+    transport.send_packet(QemuBluetoothConnection(connected=True),target=MessageTargetQemu())
+    watch.run_async()
 service = AppMessageService(watch)
 _cleaned_up=False
 def cleanup():
@@ -60,6 +85,26 @@ def message(**data):
     time.sleep(.25)
 
 def frame():
+    if args.monitor_capture:
+        path=(args.output/'frame.ppm').resolve()
+        with socket.create_connection(('127.0.0.1',transport.qemu_monitor_port),timeout=3) as monitor:
+            greeting=b''
+            while not greeting.endswith(b'(qemu) '): greeting+=monitor.recv(4096)
+            monitor.sendall(('screendump '+str(path)+'\n').encode())
+            response=b''
+            while not response.endswith(b'(qemu) '): response+=monitor.recv(65536)
+        assert path.exists(),response.decode(errors='replace')
+        pic=Image.open(path).convert('RGB');path.unlink()
+        # QEMU dims its physical display to 100/255 with the backlight off.
+        # Restore the hardware palette for layout/phase checks; white is present.
+        maximum=max(high for low,high in pic.getextrema())
+        if maximum and maximum<255: pic=pic.point([round(v*3/maximum)*85 for v in range(256)]*3)
+        expected={'aplite':(144,168),'basalt':(144,168),'chalk':(180,180),'diorite':(144,168),'emery':(200,228),'flint':(144,168),'gabbro':(260,260)}[args.platform]
+        if pic.size==(expected[0]+4,expected[1]+4): pic=pic.crop((2,2,pic.width-2,pic.height-2))
+        assert pic.size==expected,(args.platform,pic.size)
+        if args.platform in ('chalk','gabbro'):
+            mask=Image.new('L',pic.size);ImageDraw.Draw(mask).ellipse((0,0,pic.width-1,pic.height-1),fill=255);pic.putalpha(mask)
+        return pic
     rows = Screenshot(watch).grab_image()
     rows = ScreenshotCommand._correct_colours(None, rows)
     pic = Image.frombytes('RGB', (len(rows[0]) // 3, len(rows)), bytes(b for row in rows for b in row))
@@ -68,8 +113,88 @@ def frame():
         pic.putalpha(mask)
     return pic
 
+if args.spokes_check:
+    logs=[]
+    watch.register_endpoint(AppLogMessage,lambda packet:logs.append((time.monotonic(),packet.message)))
+    watch.send_packet(AppLogShippingControl(enable=True))
+    def watch_second():
+        queue=watch.get_endpoint_queue(TimeMessage)
+        try:
+            watch.send_packet(TimeMessage(message=GetTimeRequest()))
+            return queue.get().message.time%60
+        finally:queue.close()
+    def set_spoke_time(second, count):
+        message(SECOND_HAND=0, SPOKES=count)
+        fixture=fixed.replace(second=second)
+        ScreenshotCommand._set_time(watch,fixture);time.sleep(.15)
+        ScreenshotCommand._set_time(watch,fixture)
+        message(SECOND_HAND=1)
+    message(NUMERAL_FONT=2,SPIN_MOTION=1,SHOW_SPINNER=1,ANIMATE=1,FLICK_TRIGGER=1,LIGHT_TRIGGER=0,
+            SPIN_LENGTH=0,TIME_FORMAT=0,LEADING_ZERO=1,SHOW_WEATHER=1,FAHRENHEIT=0,WEATHER_INTERVAL=30,
+            GRAY_NOSE=1,NIGHT_PAUSE=0,TEMPERATURE=220,WEATHER_TIME=int(fixed.timestamp()))
+    report={'platform':args.platform,'version':meta['versionLabel'],'spokes':[8,12]}
+    for count in (8,12):
+        set_spoke_time(10,count)
+        frame().save(args.output/f'{args.platform}-{count}-spokes.png')
+    if args.platform=='emery':
+        def phase(pic,count):
+            whites=[]
+            for i in range(count):
+                vx=round(math.sin(i*2*math.pi/count)*1000);vy=round(-math.cos(i*2*math.pi/count)*1000)
+                rgb=pic.convert('RGB').getpixel((97+int(vx*23/1000),67+int(vy*23/1000)))
+                if min(rgb)>230:whites.append(i)
+            candidates=[i for i in whites if (i+1)%count not in whites]
+            assert len(candidates)==1,('ambiguous head',count,whites)
+            return candidates[0]
+        for expected in range(12):
+            set_spoke_time(expected*5,12)
+            assert phase(frame(),12)==expected,('wrong 12-spoke seconds phase',expected)
+        set_spoke_time(0,12);time.sleep(5.15)
+        assert phase(frame(),12)==1,'12-spoke timer did not advance after five seconds'
+        cases=[]
+        for count,start,repeat in [(8,6,False),(12,4,False),(12,59,False),(12,3,True)]:
+            print(f'Checking handoff count={count} second={start} repeat={repeat}',flush=True)
+            set_spoke_time(start,count)
+            logs.clear();kicked=time.monotonic()
+            send_data_to_qemu(transport,QemuTap(axis=QemuTap.Axis.Y,direction=1))
+            if repeat:
+                time.sleep(.9)
+                send_data_to_qemu(transport,QemuTap(axis=QemuTap.Axis.Y,direction=-1))
+            deadline=time.monotonic()+6
+            while not any('Spin stopped' in text for stamp,text in logs) and time.monotonic()<deadline: time.sleep(.05)
+            assert any('Spin stopped' in text for stamp,text in logs),('no spin completion',logs)
+            time.sleep(.15)
+            actual_second=watch_second()
+            observed=phase(frame(),count)
+            expected=actual_second*count//60
+            print('Handoff:',start,actual_second,observed,'wall seconds',round(time.monotonic()-kicked,2),flush=True)
+            assert observed==expected,('spin did not rejoin live seconds',count,start,repeat,observed,expected)
+            cases.append({'spokes':count,'start_second':start,'repeated_flick':repeat,'end_phase':observed,'watch_second_at_finish':actual_second})
+        message(SPOKES=12,SECOND_HAND=1,NIGHT_PAUSE=1,NIGHT_START=22,NIGHT_END=7,LIGHT_TRIGGER=1)
+        night=fixed.replace(hour=22,minute=0,second=0)
+        ScreenshotCommand._set_time(watch,night);message(SECOND_HAND=0);ScreenshotCommand._set_time(watch,night);message(SECOND_HAND=1)
+        assert phase(frame(),12)==0
+        send_data_to_qemu(transport,QemuTap(axis=QemuTap.Axis.Y,direction=1))
+        for button in (QemuButton(state=1),QemuButton(state=0)):
+            send_data_to_qemu(transport,button)
+        time.sleep(.8);assert phase(frame(),12)==0,'night pause did not suppress interaction'
+        time.sleep(4.5);assert phase(frame(),12)==1,'night pause stopped the seconds indicator'
+        message(SECOND_HAND=0)
+        morning=fixed.replace(hour=7,minute=0,second=1)
+        ScreenshotCommand._set_time(watch,morning);message(SECOND_HAND=1,SPIN_MOTION=0,LIGHT_TRIGGER=0)
+        send_data_to_qemu(transport,QemuTap(axis=QemuTap.Axis.Y,direction=1));time.sleep(.7)
+        assert phase(frame(),12)!=0,'morning animation did not resume'
+        time.sleep(2.8)
+        report['night_pause']={'flick_and_backlight_suppressed':True,'seconds_continue':True,'morning_resumes':True}
+        report.update(all_twelve_phases=True,five_second_boundary=True,live_handoffs=cases)
+    message(SPOKES=8,SECOND_HAND=1,LIGHT_TRIGGER=1,NIGHT_PAUSE=0,SPIN_MOTION=1)
+    (args.output/f'{args.platform}-spokes-verification.json').write_text(json.dumps(report,indent=2)+'\n')
+    print(json.dumps(report),flush=True)
+    cleanup()
+    raise SystemExit(0)
+
 defaults = dict(NUMERAL_FONT=2,SPIN_MOTION=1,SPOKES=8,SHOW_SPINNER=1,ANIMATE=1,FLICK_TRIGGER=1,LIGHT_TRIGGER=1,
-                SPIN_LENGTH=0,TIME_FORMAT=0,LEADING_ZERO=1,SHOW_WEATHER=1,FAHRENHEIT=0,WEATHER_INTERVAL=30,GRAY_NOSE=1,SECOND_HAND=0)
+                SPIN_LENGTH=0,TIME_FORMAT=0,LEADING_ZERO=1,SHOW_WEATHER=1,FAHRENHEIT=0,WEATHER_INTERVAL=30,GRAY_NOSE=1,SECOND_HAND=0,NIGHT_PAUSE=0)
 message(**defaults)
 report = {'platform':args.platform, 'version':meta['versionLabel'], 'fixtures':'12:30, 22 C', 'motions':{}}
 for motion,name in enumerate(('slow','fast')):

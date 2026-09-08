@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "spin.h"
 #include "seconds.h"
+#include "night.h"
 #include "spinner_geometry.h"
 #include "nose.h"
 #include "settings.h"
@@ -50,6 +51,14 @@ static uint32_t minute_ms(void) {
   return (uint32_t)(seconds%60)*1000u+ms;
 }
 
+static bool animation_paused_now(void) {
+  if (!s_settings.night_pause) return false;
+  time_t seconds; uint16_t ms;
+  time_ms(&seconds, &ms);
+  struct tm *local = localtime(&seconds);
+  return local && night_paused(true, s_settings.night_start, s_settings.night_end, local->tm_hour);
+}
+
 static void stop_spin(void) {
   s_spinning=false;
   if (s_spin_timer) {
@@ -85,6 +94,7 @@ static void spin_tick(void *context) {
   (void)context;
   s_spin_timer = NULL;
   if(!s_spinning)return;
+  if(animation_paused_now()) {stop_spin(); sync_seconds(); redraw(); return;}
   s_phase = (s_phase + segment_count() + s_direction) % segment_count();
   redraw();
   if (++s_step < spin_steps(segment_count(), s_settings.spin_motion)) {
@@ -97,17 +107,19 @@ static void spin_tick(void *context) {
 }
 
 static void kick_spin(int8_t direction) {
-  if (!s_focused || !s_settings.show_spinner || !s_settings.animate) return;
+  if (!s_focused || !s_settings.show_spinner || !s_settings.animate || animation_paused_now()) return;
   uint32_t now = now_ms();
   // One flick can emit several taps and a backlight event. Treat them as one kick.
   if (s_last_kick && now - s_last_kick < 650) return;
   s_last_kick = now;
-  if(s_settings.second_hand && !s_spinning)s_phase=seconds_phase(minute_ms(),segment_count());
+  // Every kick, including a repeated flick, starts from the live seconds position.
+  if(s_settings.second_hand)s_phase=seconds_phase(minute_ms(),segment_count());
   stop_seconds();
   stop_spin();
   s_spinning=true;
   s_direction = direction < 0 ? -1 : 1;
   s_step = 0;
+  redraw();
   APP_LOG(APP_LOG_LEVEL_INFO, "Spin started");
   uint32_t delay = spin_delay_ms(0, segment_count(), s_settings.spin_length, s_settings.spin_motion);
   if (delay) s_spin_timer = app_timer_register(delay, spin_tick, NULL);

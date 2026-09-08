@@ -57,7 +57,7 @@ static void check_run(uint8_t segments, uint8_t setting, uint8_t motion) {
 }
 
 int main(void) {
-  static const uint8_t counts[] = {6, 7, 8, 10};
+  static const uint8_t counts[] = {6, 7, 8, 10, 12};
   static const uint32_t durations[] = {3000, 4000, 2000};
   for (uint8_t setting = 0; setting < 3; ++setting) {
     assert(spin_duration_ms(setting) == durations[setting]);
@@ -86,6 +86,6 @@ int main(void) {
   assert(slow_first_advance >= 6 * fast_first_scheduled_advance);
   assert(elapsed_for_advances(8, 8, 0, 0) >= 8 * elapsed_for_advances(8, 8, 0, 1));
 
-  puts("Spinner timing passed: 24 count/duration/motion combinations, exact elapsed time, coasting, phase wraparound and distinct slow/fast startup.");
+  puts("Spinner timing passed: 30 count/duration/motion combinations, exact elapsed time, coasting, phase wraparound and distinct slow/fast startup.");
   return 0;
 }

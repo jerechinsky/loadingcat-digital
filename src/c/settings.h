@@ -7,12 +7,15 @@ typedef struct {
   int32_t time_format, leading_zero;
   int32_t numeral_font, spin_motion;
   int32_t show_weather, fahrenheit, weather_interval, gray_nose, second_hand;
-  int32_t night_pause, night_start, night_end;
+  int32_t night_pause, night_start, night_end, disconnect_vibe, disconnect_pattern, disconnect_ignore_quiet;
 } Settings;
 
 typedef struct { const uint32_t *key; size_t offset; int32_t min, max; } SettingBinding;
 #define BIND(key, member, min, max) {&key, offsetof(Settings, member), min, max}
 static const SettingBinding SETTINGS_BINDINGS[] = {
+  BIND(MESSAGE_KEY_DISCONNECT_VIBE,disconnect_vibe,0,1),
+  BIND(MESSAGE_KEY_DISCONNECT_PATTERN,disconnect_pattern,0,3),
+  BIND(MESSAGE_KEY_DISCONNECT_IGNORE_QUIET,disconnect_ignore_quiet,0,1),
   BIND(MESSAGE_KEY_NIGHT_PAUSE,night_pause,0,1),
   BIND(MESSAGE_KEY_NIGHT_START,night_start,0,23),
   BIND(MESSAGE_KEY_NIGHT_END,night_end,0,23),
@@ -38,7 +41,7 @@ static bool setting_valid(const SettingBinding *b, int32_t value) {
 
 static void settings_load(Settings *settings) {
   *settings = (Settings){.numeral_font=2,.show_spinner=1,.animate=1,.flick_trigger=1,.light_trigger=1,
-    .spin_length=0,.spin_motion=1,.spokes=8,.leading_zero=1,.show_weather=1,.weather_interval=30,.gray_nose=1,.second_hand=1,.night_pause=0,.night_start=22,.night_end=7};
+    .spin_length=0,.spin_motion=1,.spokes=8,.leading_zero=1,.show_weather=1,.weather_interval=30,.gray_nose=1,.second_hand=1,.night_pause=0,.night_start=22,.night_end=7,.disconnect_pattern=2};
   for (size_t i=0; i<ARRAY_LENGTH(SETTINGS_BINDINGS); ++i) {
     const SettingBinding *b = &SETTINGS_BINDINGS[i];
     if (persist_exists(*b->key)) {

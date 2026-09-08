@@ -456,6 +456,56 @@
     ]
   },
   {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Connection"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "DISCONNECT_VIBE",
+        "label": "Vibrate on disconnect",
+        "defaultValue": false
+      },
+      {
+        "type": "select",
+        "messageKey": "DISCONNECT_PATTERN",
+        "label": "Vibration pattern",
+        "defaultValue": "2",
+        "options": [
+          {
+            "label": "Short tap",
+            "value": "0"
+          },
+          {
+            "label": "Two taps",
+            "value": "1"
+          },
+          {
+            "label": "Three quick taps",
+            "value": "2"
+          },
+          {
+            "label": "Long then short",
+            "value": "3"
+          }
+        ]
+      },
+      {
+        "type": "toggle",
+        "messageKey": "DISCONNECT_IGNORE_QUIET",
+        "label": "Ignore Quiet Time",
+        "defaultValue": false
+      },
+      {
+        "type": "text",
+        "id": "disconnect-note",
+        "defaultValue": "Vibrates once when your watch loses its phone connection. Enable Ignore Quiet Time to receive this alert even when Quiet Time is on."
+      }
+    ]
+  },
+  {
     "type": "submit",
     "defaultValue": "Save settings"
   },

@@ -105,7 +105,7 @@ p=phone({defer:true});refresh(p);p.timeout();p.resolve();assert.equal(p.requests
 // Exercise every declared setting choice through the real normalization/save path.
 const config=JSON.parse(fs.readFileSync(__dirname+'/../src/pkjs/config.json','utf8'));
 const publicSettings=config.flatMap(section=>section.items||[]).filter(spec=>spec.messageKey);
-assert.equal(publicSettings.length,18,'The public menu only exposes supported presentation choices');
+assert.equal(publicSettings.length,21,'The public menu only exposes supported presentation choices');
 assert.deepEqual(publicSettings.find(spec=>spec.messageKey==='SPOKES').options.map(option=>Number(option.value)),[6,7,8,10,12]);
 for(const section of config)for(const spec of section.items||[])if(spec.messageKey){
  for(const value of spec.type==='toggle'?[0,1]:spec.options.map(o=>Number(o.value))){
@@ -129,7 +129,7 @@ for(const spokes of [0,11]){
  assert.equal(p.savedSettings.SPOKES,8);
  for(const key of Object.keys(retiredSettings))assert.equal(p.savedSettings[key],undefined,key+' must not remain in saved settings');
  for(const [key,value] of Object.entries(preservedSettings))assert.equal(p.savedSettings[key],value,key+' must survive saving');
- assert.equal(Object.keys(p.savedSettings).length,18);
+ assert.equal(Object.keys(p.savedSettings).length,21);
 }
 // Existing installs receive the new monochrome treatment until explicitly disabled.
 p=phone({settings:{NUMERAL_FONT:2,SHOW_WEATHER:0}});p.events.ready();assert.equal(p.messages[0].GRAY_NOSE,1);
@@ -153,3 +153,13 @@ p.events.webviewclosed({response:JSON.stringify({SPOKES:12})});assert.equal(p.sa
 p=phone();p.events.ready();assert.equal(p.messages[0].NIGHT_PAUSE,0);assert.equal(p.messages[0].NIGHT_START,22);assert.equal(p.messages[0].NIGHT_END,7);
 p.events.webviewclosed({response:JSON.stringify({NIGHT_PAUSE:1,NIGHT_START:23,NIGHT_END:8})});assert.equal(p.savedSettings.NIGHT_PAUSE,1);assert.equal(p.savedSettings.NIGHT_START,23);assert.equal(p.savedSettings.NIGHT_END,8);
 for(const [key,index] of Object.entries({NIGHT_PAUSE:26,NIGHT_START:27,NIGHT_END:28}))assert.equal(keys.indexOf(key),index);
+
+assert.equal(keys.indexOf('DISCONNECT_VIBE'),29);
+p=phone();p.events.ready();assert.equal(p.messages[0].DISCONNECT_VIBE,0);
+p.events.webviewclosed({response:JSON.stringify({DISCONNECT_VIBE:1})});assert.equal(p.savedSettings.DISCONNECT_VIBE,1);assert.equal(p.messages.filter(m=>m.DISCONNECT_VIBE!==undefined).at(-1).DISCONNECT_VIBE,1);
+p.events.webviewclosed({response:JSON.stringify({DISCONNECT_VIBE:0})});assert.equal(p.savedSettings.DISCONNECT_VIBE,0);
+console.log('Disconnect vibration default, save, delivery and stable message key passed.');
+
+assert.equal(keys.indexOf('DISCONNECT_PATTERN'),30);assert.equal(keys.indexOf('DISCONNECT_IGNORE_QUIET'),31);
+p=phone();p.events.ready();assert.equal(p.messages[0].DISCONNECT_PATTERN,2);assert.equal(p.messages[0].DISCONNECT_IGNORE_QUIET,0);
+p.events.webviewclosed({response:JSON.stringify({DISCONNECT_VIBE:1,DISCONNECT_PATTERN:3,DISCONNECT_IGNORE_QUIET:1})});assert.equal(p.savedSettings.DISCONNECT_PATTERN,3);assert.equal(p.savedSettings.DISCONNECT_IGNORE_QUIET,1);

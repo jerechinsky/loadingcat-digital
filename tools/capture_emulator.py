@@ -28,6 +28,7 @@ p.add_argument('--install', action='store_true', help='Install the current build
 p.add_argument('--settings-check', action='store_true')
 p.add_argument('--font-check', action='store_true')
 p.add_argument('--seconds-check', action='store_true')
+p.add_argument('--connection-check', action='store_true', help='Check native disconnect vibration patterns; requires --direct')
 p.add_argument('--spokes-check', action='store_true', help='Check 12-spoke layout and live seconds handoffs')
 args = p.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
@@ -112,6 +113,41 @@ def frame():
         mask = Image.new('L',pic.size); ImageDraw.Draw(mask).ellipse((0,0,pic.width-1,pic.height-1),fill=255)
         pic.putalpha(mask)
     return pic
+
+if args.connection_check:
+    from libpebble2.communication.transports.qemu import MessageTargetQemu
+    from libpebble2.communication.transports.qemu.protocol import QemuBluetoothConnection, QemuVibration
+    assert args.direct, 'Use --direct so the test can observe native vibration events'
+    events=[]
+    watch.register_transport_endpoint(MessageTargetQemu,QemuVibration,lambda packet:events.append((time.monotonic(),bool(packet.state))))
+    was_connected=True
+    def connection(connected):
+        global was_connected
+        wait=28 if was_connected and not connected else .9
+        was_connected=connected
+        send_data_to_qemu(transport,QemuBluetoothConnection(connected=connected))
+        # PebbleOS debounces disconnects for 25 seconds before notifying apps.
+        time.sleep(wait)
+    message(DISCONNECT_VIBE=0,DISCONNECT_IGNORE_QUIET=1)
+    events.clear();connection(False)
+    assert not any(state for stamp,state in events),('disabled alert vibrated',events)
+    connection(True)
+    results=[]
+    for pattern,count in enumerate([1,2,3,2]):
+        message(DISCONNECT_VIBE=1,DISCONNECT_PATTERN=pattern)
+        events.clear();connection(False)
+        starts=[stamp for stamp,state in events if state]
+        assert len(starts)==count,('wrong vibration pattern',pattern,events)
+        results.append({'pattern':pattern,'pulses':len(starts)})
+        events.clear();connection(False)
+        assert not any(state for stamp,state in events),'duplicate disconnect vibrated'
+        connection(True)
+        assert not any(state for stamp,state in events),'reconnect vibrated'
+    message(DISCONNECT_VIBE=0,DISCONNECT_PATTERN=2,DISCONNECT_IGNORE_QUIET=0)
+    result={'version':meta['versionLabel'],'platform':args.platform,'disabled_silent':True,'duplicate_and_reconnect_silent':True,'patterns':results}
+    (args.output/f'{args.platform}-disconnect-verification.json').write_text(json.dumps(result,indent=2)+'\n')
+    print(json.dumps(result),flush=True)
+    cleanup();raise SystemExit(0)
 
 if args.spokes_check:
     logs=[]

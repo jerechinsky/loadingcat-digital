@@ -1,6 +1,6 @@
 a digital variant of "loading cat" by zbw / zbzbw. really like the original, just wanted a digital clock too. thanks to zbw for the watchface and cat artwork!
 
-stacked time on the left, optional temperature on the right. the spinner follows the seconds, and you can flick your wrist to give it a spin. choose up to 12 spokes, a few fonts and animation options. you can pause flick and backlight spins at night while the seconds keep going. works on all pebble models.
+stacked time on the left, optional temperature on the right. the spinner follows the seconds, and you can flick your wrist to give it a spin. choose up to 12 spokes, a few fonts and animation options. you can pause flick and backlight spins at night while the seconds keep going. optional phone disconnect vibration, with four patterns and a Quiet Time override. works on all pebble models.
 
 original: https://github.com/zbzbw/loadingcat-pebble
 adapted by yerex

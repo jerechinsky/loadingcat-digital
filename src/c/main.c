@@ -29,6 +29,7 @@ static int32_t s_temperature, s_weather_time;
 static bool s_has_weather, s_js_ready, s_focused, s_spinning;
 
 static uint32_t s_last_kick;
+static bool s_phone_connected;
 
 static uint32_t now_ms(void) {
   time_t seconds;
@@ -284,6 +285,29 @@ static void tick_handler(struct tm *tick_time, TimeUnits changed) {
   if (!weather_is_fresh(now) || now - s_weather_time >= s_settings.weather_interval * 60) request_weather();
 }
 
+static void play_disconnect_alert(void) {
+  static const uint32_t short_tap[] = {200};
+  static const uint32_t double_tap[] = {150, 100, 150};
+  static const uint32_t triple_tap[] = {100, 100, 100, 100, 100};
+  static const uint32_t long_short[] = {400, 150, 100};
+  const VibePattern patterns[] = {
+    {.durations=short_tap,.num_segments=ARRAY_LENGTH(short_tap)},
+    {.durations=double_tap,.num_segments=ARRAY_LENGTH(double_tap)},
+    {.durations=triple_tap,.num_segments=ARRAY_LENGTH(triple_tap)},
+    {.durations=long_short,.num_segments=ARRAY_LENGTH(long_short)}
+  };
+  vibes_enqueue_custom_pattern(patterns[s_settings.disconnect_pattern]);
+}
+
+static void connection_handler(bool connected) {
+  const bool disconnected = s_phone_connected && !connected;
+  s_phone_connected = connected;
+  if (disconnected && s_settings.disconnect_vibe &&
+      (s_settings.disconnect_ignore_quiet || !quiet_time_is_active())) {
+    play_disconnect_alert();
+  }
+}
+
 static void load_numeral_fonts(void) {
   const bool big = PBL_DISPLAY_WIDTH >= 200;
   if (s_temperature_font) fonts_unload_custom_font(s_temperature_font);
@@ -352,6 +376,9 @@ static void window_unload(Window *window) {
 
 static void init(void) {
   settings_load(&s_settings);
+  // Seed silently so opening the face while disconnected never buzzes.
+  s_phone_connected = connection_service_peek_pebble_app_connection();
+  connection_service_subscribe((ConnectionHandlers){.pebble_app_connection_handler = connection_handler});
   s_has_weather = persist_exists(WEATHER_CACHE_KEY) && persist_exists(WEATHER_TIME_KEY);
   if (s_has_weather) {
     s_temperature = persist_read_int(WEATHER_CACHE_KEY);
@@ -377,6 +404,7 @@ static void deinit(void) {
   stop_spin();
   stop_seconds();
   tick_timer_service_unsubscribe();
+  connection_service_unsubscribe();
   accel_tap_service_unsubscribe();
   app_focus_service_unsubscribe();
 #ifdef _PBL_API_EXISTS_backlight_service_subscribe

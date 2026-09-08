@@ -1,7 +1,7 @@
 {
   "name": "loadingcat-digital",
   "author": "yerex (original by zbw / zbzbw)",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "keywords": [
     "pebble-app"
   ],
@@ -299,7 +299,10 @@
       "SECOND_HAND",
       "NIGHT_PAUSE",
       "NIGHT_START",
-      "NIGHT_END"
+      "NIGHT_END",
+      "DISCONNECT_VIBE",
+      "DISCONNECT_PATTERN",
+      "DISCONNECT_IGNORE_QUIET"
     ]
   }
 }

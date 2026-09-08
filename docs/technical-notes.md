@@ -1,3 +1,5 @@
+Version 1.5.4 adds optional disconnect vibrations, four patterns and an Ignore Quiet Time toggle. Pebble confirms sustained disconnects before notifying the face.
+
 Most layout notes below describe version 1.5.1. Version 1.5.3 adds 12 spokes, adjustable nighttime animation pauses and live seconds alignment on repeated flicks. Credits now use yerex; the GitHub account stays jerechinsky. Current options and release checks are in README.md and PUBLISHING.md.
 
 # Loading Cat Digital

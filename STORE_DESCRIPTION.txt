@@ -1,21 +1,7 @@
-Loading Cat Digital
+A digital take on Loading Cat, with stacked time, optional local temperature and a white-to-gray spinner that follows the seconds. Flick your wrist to give it a spin that gently slows down.
 
-A digital take on Loading Cat by zbw / zbzbw.
+Choose from four fonts, slow or fast spins, 12/24-hour time and °C/°F. Weather and animation can be switched off. Supports all Pebble models, with an optional dithered gray nose on monochrome screens. Backlight-triggered spins are also available on compatible models.
 
-A huge thank-you to zbw / zbzbw for the original analog watchface! The lovely pixel cat and clever loading-spinner clock inspired this adaptation. All credit for the original watchface design and cat artwork goes to them.
-Original project: https://github.com/zbzbw/loadingcat-pebble
-Digital adaptation by jerechinsky.
-
-White spokes and a fading gray trail follow seconds around the cat's forehead. By default, the spinner makes one turn per minute: eight steps, 7.5 seconds apart.
-
-Flick your wrist for a faster spin that coasts down, then returns to the current seconds position. Turn seconds mode off to keep the spinner still between flicks. Compatible models can also spin when the backlight wakes.
-
-Fast spin is the default, with eight spokes and a three-second duration. Slow loading makes one gentle turn. Choose 2, 3 or 4 seconds and 6, 7, 8 or 10 spokes.
-
-Tall black hours and minutes stay stacked on the left. Optional phone-location temperature matches the pale-yellow background, with white on monochrome screens. Choose Teko, Bebas Neue, Square or Square Cut numerals; Bebas Neue is the default. Set 12/24-hour time, a leading zero and Celsius/Fahrenheit.
-
-Monochrome screens use a pixel-dithered fade and an optional gray nose. Hide temperature to stop location and weather requests. Spinner, seconds, coasting and triggers can be switched off.
-
-The offline settings form contains only the watchface options. One bundle supports all seven Pebble platforms. Backlight triggering needs compatible firmware on Time 2, 2 Duo or Round 2; older models use wrist flick.
-
-Original cat artwork and watchface concept: zbw / zbzbw. Weather: Open-Meteo, CC BY 4.0.
+A huge thank-you to zbw / zbzbw for the lovely original analog watchface, clever spinner clock and cat artwork!
+Original: https://github.com/zbzbw/loadingcat-pebble
+Digital adaptation by jerechinsky. Weather: Open-Meteo, CC BY 4.0.

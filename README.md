@@ -4,7 +4,9 @@ A digital adaptation of [Loading Cat by zbw / zbzbw](https://github.com/zbzbw/lo
 
 **A huge thank-you to zbw / zbzbw for the original analog watchface.** Its lovely pixel cat and clever loading-spinner clock inspired this version. The original design and artwork are their work; **jerechinsky** created this digital adaptation. [Visit the original project](https://github.com/zbzbw/loadingcat-pebble).
 
-[Download the latest watchface](https://github.com/jerechinsky/loadingcat-digital/releases/latest)
+[Get it on the Pebble Store](https://apps.repebble.com/6f5289e6cd7f4ae7b666cb7f) · [Download the latest release](https://github.com/jerechinsky/loadingcat-digital/releases/latest)
+
+![Loading Cat Digital on all seven platforms](docs/all-models.png)
 
 Version **1.5.1**.
 
@@ -143,6 +145,6 @@ Settings framework: **Pebble Clay 1.0.4**, Pebble Technology, MIT license in `sr
 
 Retained font-study source: **Baloo 2**, the Baloo 2 Project Authors / Ek Type, from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/baloo2). Included under the SIL Open Font License in `resources/fonts/OFL.txt`; the ExtraBold file is an 800-weight instance of the upstream variable font.
 
-The upstream watchface repository did not include a license file when copied. This adaptation does not claim a license grant for the original code or artwork. Obtain the original author's permission or an applicable license before uploading a derivative to the marketplace. No marketplace upload has been made.
+The upstream watchface repository did not include a license file when copied. This adaptation does not claim a license grant for the original code or artwork. The public fork and store listing retain the original author's credit; publication does not establish a license grant. See `UPSTREAM.md` for the recorded status.
 
 Publishing instructions and current permission status: `PUBLISHING.md`. Weather data handling: `PRIVACY.md`.

@@ -10,4 +10,4 @@ Checked on 2026-09-08: the upstream root has no LICENSE file, and its README con
 GitHub's own guidance distinguishes the right to view/fork a public repository from a license to redistribute derivatives:
 https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository
 
-No license for the original code or artwork is asserted by this adaptation. Add a verified author permission or suitable upstream license here before public marketplace distribution. Font and Clay licenses are included separately.
+No license for the original code or artwork is asserted by this adaptation. The adaptation was published on 2026-09-08 at the user's request, with prominent original-author credit. Publication and credit do not establish a license grant; no author permission has been recorded. Record any future verified permission here. Font and Clay licenses are included separately.

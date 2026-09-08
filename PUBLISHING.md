@@ -1,6 +1,12 @@
 # Publishing Loading Cat Digital 1.5.1
 
-This guide covers the local release preparation for version 1.5.1. No public repository or store listing has been created for this adaptation. Use the matching version in `verification.json` to confirm which release files have been checked.
+Version **1.5.1** was published on **2026-09-08**, under **jerechinsky**.
+
+- [Pebble Store](https://apps.repebble.com/6f5289e6cd7f4ae7b666cb7f)
+- [GitHub source](https://github.com/jerechinsky/loadingcat-digital) - a fork preserving the original author's history.
+- [GitHub releases](https://github.com/jerechinsky/loadingcat-digital/releases)
+
+The public store page and developer dashboard both confirm version 1.5.1 and all seven platforms. The original author is prominently thanked and linked in the repository and listing. Use the matching `verification.json` for release checks.
 
 ## Original author credit and permission
 
@@ -8,23 +14,23 @@ Original Loading Cat watchface and supplied cat artwork: **zbw / zbzbw**, https:
 
 The upstream repository was checked on 2026-09-08. It has no license file and no general redistribution grant in its README. Its invitation to import, build and run the project does not clearly cover a derivative marketplace release. Public GitHub repositories may be viewed and forked, but that is distinct from redistribution permission. [GitHub licensing guidance](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository).
 
-Record the author's permission or applicable license in `UPSTREAM.md` before distribution. Confirm the supplied artwork is covered too. Preserve that permission and all existing notices in the source archive. Do not put a blanket license over the original work unless the permission permits it. A draft request is included with the release materials; it has not been sent.
+No author permission or applicable upstream license has been recorded. Publication does not change that status. Preserve all author notices and record any future permission in `UPSTREAM.md`; do not imply a blanket license for the original code or artwork.
 
 ## Store submission
 
-For the current Pebble store, start at the [Pebble developer dashboard](https://developer.repebble.com/dashboard). The public store API links to this dashboard for uploading and managing apps. The authenticated submission form has not been inspected in this preparation.
+For the current Pebble store, start at the [Pebble developer dashboard](https://developer.repebble.com/dashboard). The authenticated four-step submission was completed: PBW, basic details, screenshots and additional information. It accepted one screenshot for each of the seven platforms, with the adaptation repository as both website and source link. The developer display name is jerechinsky. The submitted release is published.
 
 1. Sign in with the account that should own the digital adaptation.
-2. Create a watchface named **Loading Cat Digital**. Keep this adaptation separate from the original listing.
+2. Select the existing **Loading Cat Digital** listing and use **New Release** for updates. Do not create a duplicate listing.
 3. Upload `loading-cat-digital.pbw`, version **1.5.1**. It contains aplite, basalt, chalk, diorite, emery, flint and gabbro builds. Keep its existing UUID for subsequent updates.
 4. Use the supplied `store-description.txt` and `release-notes.txt`. Retain the original author's credit and link. The digital adaptation's publisher is jerechinsky; do not impersonate the original author as the owner of this listing.
 5. Add the PNG from each matching platform folder under `screenshots/`. These are native emulator screenshots with sample time and weather. Use them in platform screenshot fields, not a scaled comparison sheet.
-6. Add the adaptation's actual public source URL after creating that repository. Do not use the upstream URL as if it hosted this version's source. Keep the upstream URL in the credit.
-7. Review the saved listing, supported targets and release file, then publish after the permission issue is resolved.
+6. Keep `https://github.com/jerechinsky/loadingcat-digital` as the website and source URL. Keep the upstream link in the credit.
+7. Review the saved listing, supported targets and release file, then verify the public page after publication.
 
 The separate [Rebble developer portal](https://dev-portal.rebble.io/) also accepts watchfaces and PBWs. Its live form asks for the name, type, description, screenshots, website/source URL and release notes, then offers **Publish App to Store**. Use it if distributing through the Rebble store; it is a separate submission. A watchface banner is optional there. Do not rely on old instructions to email a ZIP to support.
 
-## Before the public release
+## Release details and verification
 
 Version 1.5.1 uses one straight-stroke spinner with a white leading spoke and fading gray trail. Monochrome screens use a dithered fade. **Show seconds with spinner** is enabled by default: it makes one turn per minute, with a step every 7.5 seconds at eight spokes. Triggered spins temporarily take over and then return to the current seconds position. Turning seconds mode off keeps the spinner still between triggers. The spinner sits slightly lower on the forehead for stronger contrast; the original cat artwork is unchanged.
 

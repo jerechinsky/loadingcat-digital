@@ -1,12 +1,12 @@
-# Publishing Loading Cat Digital 1.5.1
+# Publishing Loading Cat Digital
 
-Version **1.5.1** was published on **2026-09-08**, under **jerechinsky**.
+Latest release: **1.5.2**, published on **2026-09-08** under **yerekhinsky**. This update corrects the bundled settings footer and manifest author. The GitHub account remains jerechinsky.
 
 - [Pebble Store](https://apps.repebble.com/6f5289e6cd7f4ae7b666cb7f)
 - [GitHub source](https://github.com/jerechinsky/loadingcat-digital) - a fork preserving the original author's history.
 - [GitHub releases](https://github.com/jerechinsky/loadingcat-digital/releases)
 
-The public store page and developer dashboard both confirm version 1.5.1 and all seven platforms. The original author is prominently thanked and linked in the repository and listing. Use the matching `verification.json` for release checks.
+Version 1.5.2 builds for all seven platforms. The settings form was checked across all seven models, including the corrected credit. Native resources are byte-identical to 1.5.1; watchface code is unchanged. The original author is prominently thanked and linked in the repository and listing. Use the matching `verification.json` for release checks.
 
 ## Original author credit and permission
 
@@ -22,7 +22,7 @@ For the current Pebble store, start at the [Pebble developer dashboard](https://
 
 1. Sign in with the account that should own the digital adaptation.
 2. Select the existing **Loading Cat Digital** listing and use **New Release** for updates. Do not create a duplicate listing.
-3. Upload `loading-cat-digital.pbw`, version **1.5.1**. It contains aplite, basalt, chalk, diorite, emery, flint and gabbro builds. Keep its existing UUID for subsequent updates.
+3. Upload `loading-cat-digital.pbw`, version **1.5.2**. It contains aplite, basalt, chalk, diorite, emery, flint and gabbro builds. Keep its existing UUID for subsequent updates.
 4. Use the supplied `store-description.txt` and `release-notes.txt`. Retain the original author's credit and link. The digital adaptation's publisher is jerechinsky; do not impersonate the original author as the owner of this listing.
 5. Add the PNG from each matching platform folder under `screenshots/`. These are native emulator screenshots with sample time and weather. Use them in platform screenshot fields, not a scaled comparison sheet.
 6. Keep `https://github.com/jerechinsky/loadingcat-digital` as the source URL; leave the optional website field empty. Keep the upstream link in the credit.

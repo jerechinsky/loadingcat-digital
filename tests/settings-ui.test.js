@@ -37,7 +37,7 @@ function phone(saved={},platform='emery'){
   assert.equal(await page.getByRole('button').count(),1,'Save is the only button');
   assert.equal(await page.getByRole('button',{name:'Save settings'}).count(),1);
   assert.doesNotMatch(await page.locator('body').innerText(),/Example time|Example seconds|Play seconds|Pause seconds|Test animation|Reset to defaults|Live preview|Browser demo/);
-  assert.match(await page.locator('body').innerText(),/Digital adaptation by jerechinsky\./);
+  assert.match(await page.locator('body').innerText(),/Digital adaptation by yerekhinsky\./);
   assert.equal(await page.getByRole('link',{name:'zbw / zbzbw'}).getAttribute('href'),'https://github.com/zbzbw/loadingcat-pebble');
  }
  let ph=phone();const defaultHtml=ph.html();await load(defaultHtml);await checkStock();

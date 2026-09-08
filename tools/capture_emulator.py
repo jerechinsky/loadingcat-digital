@@ -5,7 +5,7 @@ Screenshots use fixed 12:30 / 22 C fixtures, not a real weather observation.
 """
 import argparse, atexit, datetime, json, math, os, signal, socket, time, uuid
 from pathlib import Path
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageChops, ImageOps
 from libpebble2.communication import PebbleConnection
 from libpebble2.services.appmessage import AppMessageService, Int32
 from libpebble2.services.screenshot import Screenshot
@@ -28,6 +28,7 @@ p.add_argument('--install', action='store_true', help='Install the current build
 p.add_argument('--settings-check', action='store_true')
 p.add_argument('--font-check', action='store_true')
 p.add_argument('--seconds-check', action='store_true')
+p.add_argument('--inversion-check', action='store_true', help='Check disconnected colors and delayed alerts; requires --direct')
 p.add_argument('--connection-check', action='store_true', help='Check native disconnect vibration patterns; requires --direct')
 p.add_argument('--spokes-check', action='store_true', help='Check 12-spoke layout and live seconds handoffs')
 args = p.parse_args()
@@ -113,6 +114,46 @@ def frame():
         mask = Image.new('L',pic.size); ImageDraw.Draw(mask).ellipse((0,0,pic.width-1,pic.height-1),fill=255)
         pic.putalpha(mask)
     return pic
+
+if args.inversion_check:
+    from libpebble2.communication.transports.qemu import MessageTargetQemu
+    from libpebble2.communication.transports.qemu.protocol import QemuBluetoothConnection, QemuVibration
+    assert args.direct
+    events=[]
+    watch.register_transport_endpoint(MessageTargetQemu,QemuVibration,lambda packet:events.append(bool(packet.state)))
+    def link(connected,wait=.9):
+        send_data_to_qemu(transport,QemuBluetoothConnection(connected=connected));time.sleep(wait)
+    message(ANIMATE=0,SECOND_HAND=0,SHOW_SPINNER=1,SHOW_WEATHER=1,NUMERAL_FONT=2,GRAY_NOSE=1,
+            SPOKES=8,TIME_FORMAT=2,LEADING_ZERO=1,TEMPERATURE=220,WEATHER_TIME=int(fixed.timestamp()),
+            DISCONNECT_VIBE=0,DISCONNECT_INVERT=1,DISCONNECT_DELAY=0)
+    ScreenshotCommand._set_time(watch,fixed);time.sleep(.3)
+    before=frame();before.save(args.output/f'{args.platform}-connected.png')
+    link(False,28)
+    after=frame();after.save(args.output/f'{args.platform}-disconnected.png')
+    def equal(actual,expected):
+        diff=ImageChops.difference(actual.convert('RGB'),expected.convert('RGB'))
+        if actual.mode=='RGBA':diff.paste((0,0,0),mask=ImageOps.invert(actual.getchannel('A')))
+        assert diff.getbbox() is None,('pixel mismatch',args.platform,diff.getbbox())
+    assert ImageChops.difference(after.convert('RGB'),before.convert('RGB')).getbbox()
+    assert after.convert('RGB').getpixel((3,after.height//2))==(0,0,0)
+    link(True);ScreenshotCommand._set_time(watch,fixed);time.sleep(.3)
+    equal(frame(),before)
+    result={'version':meta['versionLabel'],'platform':args.platform,'disconnected_palette_changed':True,'black_background':True,'reconnect_restores':True}
+    if args.platform=='emery':
+        message(DISCONNECT_VIBE=1,DISCONNECT_PATTERN=2,DISCONNECT_IGNORE_QUIET=1,DISCONNECT_DELAY=5)
+        events.clear();link(False,27)
+        equal(frame(),before);assert not any(events),'alert fired before additional delay'
+        time.sleep(5)
+        equal(frame(),after);assert sum(events)==3,events
+        link(True);ScreenshotCommand._set_time(watch,fixed);time.sleep(.3)
+        message(DISCONNECT_DELAY=10)
+        events.clear();link(False,27);link(True);time.sleep(11)
+        ScreenshotCommand._set_time(watch,fixed);time.sleep(.3)
+        equal(frame(),before);assert not any(events),'reconnection did not cancel pending vibration'
+        result.update(extra_delay=True,reconnect_cancels_pending=True)
+    message(DISCONNECT_VIBE=0,DISCONNECT_DELAY=0,DISCONNECT_INVERT=0,DISCONNECT_IGNORE_QUIET=0,ANIMATE=1,SECOND_HAND=1)
+    (args.output/f'{args.platform}-inversion-verification.json').write_text(json.dumps(result,indent=2)+'\n')
+    print(json.dumps(result),flush=True);cleanup();raise SystemExit(0)
 
 if args.connection_check:
     from libpebble2.communication.transports.qemu import MessageTargetQemu

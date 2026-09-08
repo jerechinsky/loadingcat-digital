@@ -105,7 +105,7 @@ p=phone({defer:true});refresh(p);p.timeout();p.resolve();assert.equal(p.requests
 // Exercise every declared setting choice through the real normalization/save path.
 const config=JSON.parse(fs.readFileSync(__dirname+'/../src/pkjs/config.json','utf8'));
 const publicSettings=config.flatMap(section=>section.items||[]).filter(spec=>spec.messageKey);
-assert.equal(publicSettings.length,21,'The public menu only exposes supported presentation choices');
+assert.equal(publicSettings.length,23,'The public menu only exposes supported presentation choices');
 assert.deepEqual(publicSettings.find(spec=>spec.messageKey==='SPOKES').options.map(option=>Number(option.value)),[6,7,8,10,12]);
 for(const section of config)for(const spec of section.items||[])if(spec.messageKey){
  for(const value of spec.type==='toggle'?[0,1]:spec.options.map(o=>Number(o.value))){
@@ -129,7 +129,7 @@ for(const spokes of [0,11]){
  assert.equal(p.savedSettings.SPOKES,8);
  for(const key of Object.keys(retiredSettings))assert.equal(p.savedSettings[key],undefined,key+' must not remain in saved settings');
  for(const [key,value] of Object.entries(preservedSettings))assert.equal(p.savedSettings[key],value,key+' must survive saving');
- assert.equal(Object.keys(p.savedSettings).length,21);
+ assert.equal(Object.keys(p.savedSettings).length,23);
 }
 // Existing installs receive the new monochrome treatment until explicitly disabled.
 p=phone({settings:{NUMERAL_FONT:2,SHOW_WEATHER:0}});p.events.ready();assert.equal(p.messages[0].GRAY_NOSE,1);
@@ -163,3 +163,7 @@ console.log('Disconnect vibration default, save, delivery and stable message key
 assert.equal(keys.indexOf('DISCONNECT_PATTERN'),30);assert.equal(keys.indexOf('DISCONNECT_IGNORE_QUIET'),31);
 p=phone();p.events.ready();assert.equal(p.messages[0].DISCONNECT_PATTERN,2);assert.equal(p.messages[0].DISCONNECT_IGNORE_QUIET,0);
 p.events.webviewclosed({response:JSON.stringify({DISCONNECT_VIBE:1,DISCONNECT_PATTERN:3,DISCONNECT_IGNORE_QUIET:1})});assert.equal(p.savedSettings.DISCONNECT_PATTERN,3);assert.equal(p.savedSettings.DISCONNECT_IGNORE_QUIET,1);
+
+assert.equal(keys.indexOf('DISCONNECT_DELAY'),32);assert.equal(keys.indexOf('DISCONNECT_INVERT'),33);
+p=phone();p.events.ready();assert.equal(p.messages[0].DISCONNECT_DELAY,0);assert.equal(p.messages[0].DISCONNECT_INVERT,0);
+p.events.webviewclosed({response:JSON.stringify({DISCONNECT_DELAY:15,DISCONNECT_INVERT:1})});assert.equal(p.savedSettings.DISCONNECT_DELAY,15);assert.equal(p.savedSettings.DISCONNECT_INVERT,1);

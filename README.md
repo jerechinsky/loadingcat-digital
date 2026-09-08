@@ -12,7 +12,7 @@ a digital variant of ["loading cat" by zbw / zbzbw](https://github.com/zbzbw/loa
 - **animation:** flick your wrist for a spin that slows down, then returns to the current seconds position. choose slow or fast, lasting 2, 3 or 4 seconds. default is fast, 3 seconds, 8 spokes. the spinner, animation and individual triggers can be switched off.
 - **nighttime:** optionally pause wrist-flick and backlight spins during chosen hours (initially 22:00–07:00). the seconds indicator keeps running.
 - **backlight trigger:** can also spin when the backlight wakes on Time 2, 2 Duo and Round 2 with compatible firmware.
-- **disconnect alert:** optional phone disconnect alert with four vibration patterns and an Ignore Quiet Time switch.
+- **disconnect alert:** optional white cat on a black background and four vibration patterns when the phone disconnects. add 0–60 seconds of delay after Pebble confirms the disconnect (about 25 seconds). reconnecting cancels pending alerts and restores normal colors. includes an Ignore Quiet Time switch for vibration.
 - **monochrome:** dithered spinner shading and an optional gray nose.
 
 works on Pebble, Steel, Time, Time Steel, Time Round, Pebble 2, Time 2, 2 Duo and Round 2. settings work offline and keep your preferences. weather needs internet; stale readings disappear after two hours.

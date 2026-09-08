@@ -1,3 +1,5 @@
+Version 1.5.5 adds extra disconnect delay and an optional white cat on black. The original eyes and pupils are preserved with a thin dark outline; ears and gray details keep their natural colors. The background bitmap reloads and recolors only on visual state changes; original resources are unchanged. tools/generate_disconnect_eyes.py regenerates the eye drawing spans for all seven targets.
+
 Version 1.5.4 adds optional disconnect vibrations, four patterns and an Ignore Quiet Time toggle. Pebble confirms sustained disconnects before notifying the face.
 
 Most layout notes below describe version 1.5.1. Version 1.5.3 adds 12 spokes, adjustable nighttime animation pauses and live seconds alignment on repeated flicks. Credits now use yerex; the GitHub account stays jerechinsky. Current options and release checks are in README.md and PUBLISHING.md.

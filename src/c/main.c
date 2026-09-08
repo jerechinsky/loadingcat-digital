@@ -4,6 +4,8 @@
 #include "night.h"
 #include "spinner_geometry.h"
 #include "nose.h"
+#include "inversion.h"
+#include "disconnect_eyes.h"
 #include "settings.h"
 #include "font_metrics.h"
 #include "temperature_layout.h"
@@ -29,7 +31,18 @@ static int32_t s_temperature, s_weather_time;
 static bool s_has_weather, s_js_ready, s_focused, s_spinning;
 
 static uint32_t s_last_kick;
-static bool s_phone_connected;
+static bool s_phone_connected, s_disconnect_visible, s_disconnect_pending, s_background_inverted;
+static AppTimer *s_disconnect_timer;
+static uint32_t s_disconnect_started;
+
+static bool disconnected_colors(void) {
+  return s_settings.disconnect_invert && s_disconnect_visible;
+}
+
+static GColor display_color(GColor color) {
+  if(disconnected_colors())color.argb^=0x3f;
+  return color;
+}
 
 static uint32_t now_ms(void) {
   time_t seconds;
@@ -170,12 +183,12 @@ static void draw_spinner(GContext *ctx) {
     int left=(ax<bx?ax:bx)-radius,right=(ax>bx?ax:bx)+radius;
     int top=(ay<by?ay:by)-radius,bottom=(ay>by?ay:by)+radius;
 #ifdef PBL_COLOR
-    graphics_context_set_stroke_color(ctx,GColorFromRGB(brightness,brightness,brightness));
+    graphics_context_set_stroke_color(ctx,display_color(GColorFromRGB(brightness,brightness,brightness)));
 #endif
     for(int y=top;y<=bottom;++y)for(int x=left;x<=right;++x) {
       if(!spinner_contains(x,y,ax,ay,bx,by,radius))continue;
 #ifdef PBL_BW
-      graphics_context_set_stroke_color(ctx,spinner_dither(x,y,brightness)?GColorWhite:GColorBlack);
+      graphics_context_set_stroke_color(ctx,display_color(spinner_dither(x,y,brightness)?GColorWhite:GColorBlack));
 #endif
       graphics_draw_pixel(ctx,GPoint(x,y));
     }
@@ -205,7 +218,15 @@ static void outlined_text_color(GContext *ctx, const char *text, GFont font, GRe
 
 static void canvas_update(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
-  GColor cream = PBL_IF_COLOR_ELSE(GColorFromRGB(255,255,170),GColorWhite);
+  GColor cream = disconnected_colors() ? GColorBlack : PBL_IF_COLOR_ELSE(GColorFromRGB(255,255,170),GColorWhite);
+  if(s_background && s_background_inverted!=disconnected_colors()) {
+    // Reload before recoloring because the natural palette is not reversible.
+    // Release first to keep memory usage the same on older Pebbles.
+    gbitmap_destroy(s_background);
+    s_background=gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BG);
+    if(s_background && disconnected_colors())invert_bitmap(s_background);
+    s_background_inverted=disconnected_colors();
+  }
   graphics_context_set_fill_color(ctx, cream);
   graphics_fill_rect(ctx,bounds,0,GCornerNone);
   GRect background_rect = bounds;
@@ -214,6 +235,7 @@ static void canvas_update(Layer *layer, GContext *ctx) {
 #ifdef PBL_BW
   if (s_settings.gray_nose) draw_gray_nose(ctx,background_shift());
 #endif
+  if (disconnected_colors()) draw_disconnect_eyes(ctx,background_shift());
   if (s_settings.show_spinner) draw_spinner(ctx);
 
   time_t now = time(NULL);
@@ -235,7 +257,7 @@ static void canvas_update(Layer *layer, GContext *ctx) {
   int minute_bearing = stack_left_bearing(minutes[0],font_size,s_settings.numeral_font);
   int left_bearing = hour_bearing < minute_bearing ? hour_bearing : minute_bearing;
   GRect box = GRect(margin - left_bearing,y,font_size,48);
-  graphics_context_set_text_color(ctx, GColorBlack);
+  graphics_context_set_text_color(ctx, display_color(GColorBlack));
   graphics_draw_text(ctx,hours,s_stack_font,box,GTextOverflowModeFill,GTextAlignmentCenter,NULL);
   box.origin.y += line;
   graphics_draw_text(ctx,minutes,s_stack_font,box,GTextOverflowModeFill,GTextAlignmentCenter,NULL);
@@ -262,7 +284,7 @@ static void canvas_update(Layer *layer, GContext *ctx) {
     temp_box.origin.x = temperature_box_x(temperature,s_settings.numeral_font,temp_font_size,
         bounds.size.w,bounds.size.h,temp_box.origin.y,temp_width,PBL_IF_ROUND_ELSE(true,false));
     // The fixed dark edge protects the pale temperature over light whiskers.
-    outlined_text_color(ctx,temperature,temp_font,temp_box,GTextAlignmentRight,cream,GColorBlack);
+    outlined_text_color(ctx,temperature,temp_font,temp_box,GTextAlignmentRight,cream,display_color(GColorBlack));
   }
 }
 
@@ -299,12 +321,36 @@ static void play_disconnect_alert(void) {
   vibes_enqueue_custom_pattern(patterns[s_settings.disconnect_pattern]);
 }
 
+static void cancel_disconnect_timer(void) {
+  if(s_disconnect_timer){app_timer_cancel(s_disconnect_timer);s_disconnect_timer=NULL;}
+}
+
+static void confirm_disconnect(void *context) {
+  (void)context;
+  s_disconnect_timer=NULL;
+  s_disconnect_pending=false;
+  if(s_phone_connected)return;
+  s_disconnect_visible=true;
+  redraw();
+  if(s_settings.disconnect_vibe &&
+      (s_settings.disconnect_ignore_quiet || !quiet_time_is_active()))play_disconnect_alert();
+}
+
+static void schedule_disconnect(void) {
+  cancel_disconnect_timer();
+  uint32_t elapsed=now_ms()-s_disconnect_started;
+  uint32_t delay=s_settings.disconnect_delay*1000u;
+  if(elapsed>=delay)confirm_disconnect(NULL);
+  else s_disconnect_timer=app_timer_register(delay-elapsed,confirm_disconnect,NULL);
+}
+
 static void connection_handler(bool connected) {
-  const bool disconnected = s_phone_connected && !connected;
-  s_phone_connected = connected;
-  if (disconnected && s_settings.disconnect_vibe &&
-      (s_settings.disconnect_ignore_quiet || !quiet_time_is_active())) {
-    play_disconnect_alert();
+  const bool disconnected=s_phone_connected && !connected;
+  s_phone_connected=connected;
+  if(connected) {
+    cancel_disconnect_timer();s_disconnect_pending=false;s_disconnect_visible=false;redraw();
+  } else if(disconnected) {
+    s_disconnect_started=now_ms();s_disconnect_pending=true;schedule_disconnect();
   }
 }
 
@@ -321,7 +367,9 @@ static void load_numeral_fonts(void) {
 static void inbox_received(DictionaryIterator *iter, void *context) {
   (void)context;
   int previous_font = s_settings.numeral_font;
+  int previous_delay = s_settings.disconnect_delay;
   if (settings_receive(&s_settings,iter)) {
+    if(s_disconnect_pending && previous_delay!=s_settings.disconnect_delay)schedule_disconnect();
     if (s_canvas && previous_font != s_settings.numeral_font) load_numeral_fonts();
     stop_spin(); s_phase = 0;
     sync_seconds();
@@ -355,6 +403,7 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
 static void window_load(Window *window) {
   Layer *root = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(root);
+  s_background_inverted=false;
   s_background = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BG);
   load_numeral_fonts();
   s_canvas = layer_create(bounds);
@@ -378,6 +427,7 @@ static void init(void) {
   settings_load(&s_settings);
   // Seed silently so opening the face while disconnected never buzzes.
   s_phone_connected = connection_service_peek_pebble_app_connection();
+  s_disconnect_visible = !s_phone_connected;
   connection_service_subscribe((ConnectionHandlers){.pebble_app_connection_handler = connection_handler});
   s_has_weather = persist_exists(WEATHER_CACHE_KEY) && persist_exists(WEATHER_TIME_KEY);
   if (s_has_weather) {
@@ -401,6 +451,7 @@ static void init(void) {
 }
 
 static void deinit(void) {
+  cancel_disconnect_timer();
   stop_spin();
   stop_seconds();
   tick_timer_service_unsubscribe();

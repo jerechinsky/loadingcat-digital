@@ -16,8 +16,18 @@ program = '''
 #define ARRAY_LENGTH(a) (sizeof(a)/sizeof((a)[0]))
 typedef struct { const uint32_t *durations; uint32_t num_segments; } VibePattern;
 static VibePattern last;
-static bool s_phone_connected, quiet;
-static struct { int disconnect_vibe, disconnect_pattern, disconnect_ignore_quiet; } s_settings;
+static bool s_phone_connected, quiet, s_disconnect_visible, s_disconnect_pending;
+static uint32_t clock_ms,s_disconnect_started;
+typedef struct {bool active;uint32_t due;void (*callback)(void *);} AppTimer;
+static AppTimer timer,*s_disconnect_timer;
+static uint32_t now_ms(void){return clock_ms;}
+static void redraw(void){}
+static void app_timer_cancel(AppTimer *t){assert(t->active);t->active=false;}
+static AppTimer *app_timer_register(uint32_t delay,void (*cb)(void *),void *context){
+  (void)context;assert(!timer.active);timer=(AppTimer){true,clock_ms+delay,cb};return &timer;
+}
+static void advance(uint32_t ms){clock_ms+=ms;if(timer.active && clock_ms>=timer.due){timer.active=false;timer.callback(NULL);}}
+static struct { int disconnect_vibe, disconnect_pattern, disconnect_ignore_quiet, disconnect_delay; } s_settings;
 static int pulses;
 static bool quiet_time_is_active(void) { return quiet; }
 static void vibes_enqueue_custom_pattern(VibePattern pattern) { ++pulses; last=pattern; }
@@ -51,7 +61,21 @@ int main(void) {
   }
   s_settings.disconnect_ignore_quiet=0;int before=pulses;
   connection_handler(true);connection_handler(false);assert(pulses==before);
-  puts("Disconnect handler passed: all four patterns and Quiet Time override; startup, reconnect, duplicate events, disabled setting, re-enable and Quiet Time.");
+  quiet=false;s_settings.disconnect_delay=5;connection_handler(true);
+  before=pulses;connection_handler(false);assert(s_disconnect_pending && !s_disconnect_visible);
+  advance(4999);assert(pulses==before && !s_disconnect_visible);
+  connection_handler(false);advance(1);assert(pulses==before+1 && s_disconnect_visible);
+  connection_handler(true);assert(!s_disconnect_visible && !s_disconnect_pending);
+  connection_handler(false);advance(2000);connection_handler(true);advance(10000);
+  assert(pulses==before+1 && !s_disconnect_visible && !s_disconnect_pending);
+  connection_handler(false);advance(2000);s_settings.disconnect_delay=10;schedule_disconnect();
+  advance(7999);assert(!s_disconnect_visible);advance(1);assert(s_disconnect_visible);
+  connection_handler(true);s_settings.disconnect_delay=10;connection_handler(false);advance(6000);
+  s_settings.disconnect_delay=5;schedule_disconnect();assert(s_disconnect_visible && !timer.active);
+  connection_handler(true);s_settings.disconnect_delay=5;connection_handler(false);before=pulses;
+  quiet=true;advance(5000);assert(s_disconnect_visible && pulses==before);
+  connection_handler(true);s_settings.disconnect_ignore_quiet=1;connection_handler(false);advance(5000);assert(pulses==before+1);
+  puts("Disconnect handler passed: delayed vibration/visual state, cancellation, delay changes and Quiet Time at expiry; all four patterns and Quiet Time override; startup, reconnect, duplicate events, disabled setting, re-enable and Quiet Time.");
 }
 '''
 with tempfile.TemporaryDirectory() as tmp:

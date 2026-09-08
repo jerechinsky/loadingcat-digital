@@ -2,7 +2,7 @@
 
 A digital adaptation of [Loading Cat by zbw / zbzbw](https://github.com/zbzbw/loadingcat-pebble), retaining the original cat artwork and concept.
 
-**A huge thank-you to zbw / zbzbw for the original analog watchface.** Its lovely pixel cat and clever loading-spinner clock inspired this version. The original design and artwork are their work; **jerechinsky** created this digital adaptation. [Visit the original project](https://github.com/zbzbw/loadingcat-pebble).
+**Thanks to zbw / zbzbw for the original analog watchface and cat artwork.** This digital adaptation is by **yerekhinsky** ([jerechinsky on GitHub](https://github.com/jerechinsky)). [Visit the original project](https://github.com/zbzbw/loadingcat-pebble).
 
 [Get it on the Pebble Store](https://apps.repebble.com/6f5289e6cd7f4ae7b666cb7f) · [Download the latest release](https://github.com/jerechinsky/loadingcat-digital/releases/latest)
 
@@ -133,7 +133,7 @@ Build/emulator checks do not verify physical wrist sensitivity, phone permission
 
 ## Credits and redistribution
 
-Original watchface and cat assets: **zbw / zbzbw**, [loadingcat-pebble](https://github.com/zbzbw/loadingcat-pebble). Digital adaptation by **jerechinsky**. The original author remains credited in the manifest.
+Original watchface and cat assets: **zbw / zbzbw**, [loadingcat-pebble](https://github.com/zbzbw/loadingcat-pebble). Digital adaptation by **yerekhinsky** ([jerechinsky on GitHub](https://github.com/jerechinsky)). The original author remains credited in the manifest.
 
 Numeral choices: **Teko**, **Bebas Neue**, **Square** and **Square Cut**. Bebas Neue is the default.
 

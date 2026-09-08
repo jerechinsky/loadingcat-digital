@@ -18,14 +18,14 @@ No author permission or applicable upstream license has been recorded. Publicati
 
 ## Store submission
 
-For the current Pebble store, start at the [Pebble developer dashboard](https://developer.repebble.com/dashboard). The authenticated four-step submission was completed: PBW, basic details, screenshots and additional information. It accepted one screenshot for each of the seven platforms, with the adaptation repository as both website and source link. The developer display name is jerechinsky. The submitted release is published.
+For the current Pebble store, start at the [Pebble developer dashboard](https://developer.repebble.com/dashboard). The authenticated four-step submission was completed: PBW, basic details, screenshots and additional information. It accepted one screenshot for each of the seven platforms, with the adaptation repository as the source link. The optional website link was subsequently removed. The developer display name is yerekhinsky; the GitHub account remains jerechinsky. The submitted release is published.
 
 1. Sign in with the account that should own the digital adaptation.
 2. Select the existing **Loading Cat Digital** listing and use **New Release** for updates. Do not create a duplicate listing.
 3. Upload `loading-cat-digital.pbw`, version **1.5.1**. It contains aplite, basalt, chalk, diorite, emery, flint and gabbro builds. Keep its existing UUID for subsequent updates.
 4. Use the supplied `store-description.txt` and `release-notes.txt`. Retain the original author's credit and link. The digital adaptation's publisher is jerechinsky; do not impersonate the original author as the owner of this listing.
 5. Add the PNG from each matching platform folder under `screenshots/`. These are native emulator screenshots with sample time and weather. Use them in platform screenshot fields, not a scaled comparison sheet.
-6. Keep `https://github.com/jerechinsky/loadingcat-digital` as the website and source URL. Keep the upstream link in the credit.
+6. Keep `https://github.com/jerechinsky/loadingcat-digital` as the source URL; leave the optional website field empty. Keep the upstream link in the credit.
 7. Review the saved listing, supported targets and release file, then verify the public page after publication.
 
 The separate [Rebble developer portal](https://dev-portal.rebble.io/) also accepts watchfaces and PBWs. Its live form asks for the name, type, description, screenshots, website/source URL and release notes, then offers **Publish App to Store**. Use it if distributing through the Rebble store; it is a separate submission. A watchface banner is optional there. Do not rely on old instructions to email a ZIP to support.

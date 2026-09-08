@@ -1,7 +1,7 @@
-A digital take on Loading Cat, with stacked time, optional local temperature and a white-to-gray spinner that follows the seconds. Flick your wrist to give it a spin that gently slows down.
+a digital variant of "loading cat" by zbw / zbzbw. really like the original, just wanted a digital clock too. thanks to zbw for the watchface and cat artwork!
 
-Choose from four fonts, slow or fast spins, 12/24-hour time and °C/°F. Weather and animation can be switched off. Supports all Pebble models, with an optional dithered gray nose on monochrome screens. Backlight-triggered spins are also available on compatible models.
+stacked time on the left, optional temperature on the right. the spinner follows the seconds, and you can flick your wrist to give it a spin. a few fonts and animation options in settings. works on all pebble models.
 
-A huge thank-you to zbw / zbzbw for the lovely original analog watchface, clever spinner clock and cat artwork!
-Original: https://github.com/zbzbw/loadingcat-pebble
-Digital adaptation by jerechinsky. Weather: Open-Meteo, CC BY 4.0.
+original: https://github.com/zbzbw/loadingcat-pebble
+adapted by yerekhinsky
+weather: Open-Meteo, CC BY 4.0

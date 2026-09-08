@@ -2,6 +2,7 @@
 # Pebble wscript build configuration
 #
 import os.path
+import os
 
 top = '.'
 out = 'build'

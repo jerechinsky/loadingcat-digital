@@ -1,15 +1,14 @@
 {
-  "name": "loadingcat",
-  "author": "zbw",
-  "version": "1.0.0",
+  "name": "loadingcat-digital",
+  "author": "jerechinsky (original by zbw / zbzbw)",
+  "version": "1.5.1",
   "keywords": [
     "pebble-app"
   ],
   "private": true,
-  "dependencies": {},
   "pebble": {
-    "displayName": "Loading Cat",
-    "uuid": "90f393a9-0595-415e-86a8-fde27b223dde",
+    "displayName": "Loading Cat Digital",
+    "uuid": "56aab549-bf5a-4032-bb60-4920621fad08",
     "sdkVersion": "3",
     "enableMultiJS": true,
     "targetPlatforms": [
@@ -30,8 +29,274 @@
           "type": "png",
           "name": "IMAGE_BG",
           "file": "images/loadingcat_bg.png"
+        },
+        {
+          "type": "font",
+          "name": "FONT_TIME_40",
+          "file": "fonts/Baloo2-ExtraBold.ttf",
+          "characterRegex": "[0-9:\u00b0-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_TIME_29",
+          "file": "fonts/Baloo2-ExtraBold.ttf",
+          "characterRegex": "[0-9:\u00b0-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_TIME_23",
+          "file": "fonts/Baloo2-ExtraBold.ttf",
+          "characterRegex": "[0-9:\u00b0-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_A_30",
+          "file": "fonts/LoadingCatType0.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_A_22",
+          "file": "fonts/LoadingCatType0.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_A_18",
+          "file": "fonts/LoadingCatType0.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_A_16",
+          "file": "fonts/LoadingCatType0.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_B_30",
+          "file": "fonts/LoadingCatType1.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_B_22",
+          "file": "fonts/LoadingCatType1.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_B_18",
+          "file": "fonts/LoadingCatType1.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_B_16",
+          "file": "fonts/LoadingCatType1.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_C_30",
+          "file": "fonts/LoadingCatType2.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_C_22",
+          "file": "fonts/LoadingCatType2.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_C_18",
+          "file": "fonts/LoadingCatType2.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_C_16",
+          "file": "fonts/LoadingCatType2.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_D_30",
+          "file": "fonts/LoadingCatType3.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_D_22",
+          "file": "fonts/LoadingCatType3.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_D_18",
+          "file": "fonts/LoadingCatType3.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_D_16",
+          "file": "fonts/LoadingCatType3.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_E_30",
+          "file": "fonts/LoadingCatType4.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_E_22",
+          "file": "fonts/LoadingCatType4.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_E_18",
+          "file": "fonts/LoadingCatType4.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_E_16",
+          "file": "fonts/LoadingCatType4.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_F_30",
+          "file": "fonts/LoadingCatType5.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_F_22",
+          "file": "fonts/LoadingCatType5.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_F_18",
+          "file": "fonts/LoadingCatType5.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_F_16",
+          "file": "fonts/LoadingCatType5.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_G_30",
+          "file": "fonts/LoadingCatType6.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_G_22",
+          "file": "fonts/LoadingCatType6.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_G_18",
+          "file": "fonts/LoadingCatType6.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_G_16",
+          "file": "fonts/LoadingCatType6.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_H_30",
+          "file": "fonts/LoadingCatType7_30.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_H_22",
+          "file": "fonts/LoadingCatType7_22.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_H_18",
+          "file": "fonts/LoadingCatType7_18.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_H_16",
+          "file": "fonts/LoadingCatType7_16.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_I_30",
+          "file": "fonts/LoadingCatType8_30.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_I_22",
+          "file": "fonts/LoadingCatType8_22.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_I_18",
+          "file": "fonts/LoadingCatType8_18.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_NUM_I_16",
+          "file": "fonts/LoadingCatType8_16.ttf",
+          "characterRegex": "[0-9\u00b0:-]"
         }
       ]
-    }
+    },
+    "capabilities": [
+      "location",
+      "configurable"
+    ],
+    "messageKeys": [
+      "JS_READY",
+      "REQUEST_WEATHER",
+      "TEMPERATURE",
+      "WEATHER_TIME",
+      "STYLE",
+      "SHOW_SPINNER",
+      "SPOKES",
+      "ANIMATE",
+      "FLICK_TRIGGER",
+      "LIGHT_TRIGGER",
+      "SPIN_LENGTH",
+      "SHOW_TIME",
+      "TIME_FORMAT",
+      "LEADING_ZERO",
+      "FONT_STYLE",
+      "COMPACT",
+      "DARK_TEXT",
+      "OUTLINE",
+      "SHOW_WEATHER",
+      "FAHRENHEIT",
+      "WEATHER_INTERVAL",
+      "TIME_LAYOUT",
+      "NUMERAL_FONT",
+      "SPIN_MOTION",
+      "GRAY_NOSE",
+      "SECOND_HAND"
+    ]
   }
 }

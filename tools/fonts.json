@@ -1,0 +1,61 @@
+[
+  {
+    "name": "Teko Medium",
+    "file": "Teko-Variable.ttf",
+    "weight": 500,
+    "license": "Teko-OFL.txt",
+    "visible": true
+  },
+  {
+    "name": "Saira Extra Condensed",
+    "file": "SairaExtraCondensed-SemiBold.ttf",
+    "weight": null,
+    "license": "Saira-OFL.txt",
+    "visible": false
+  },
+  {
+    "name": "Bebas Neue",
+    "file": "BebasNeue-Regular.ttf",
+    "weight": null,
+    "license": "BebasNeue-OFL.txt",
+    "visible": true
+  },
+  {
+    "name": "Barlow Condensed",
+    "file": "BarlowCondensed-SemiBold.ttf",
+    "weight": null,
+    "license": "Barlow-OFL.txt",
+    "visible": false
+  },
+  {
+    "name": "Roboto Condensed",
+    "file": "RobotoCondensed[wght].ttf",
+    "weight": 600,
+    "license": "RobotoCondensed-OFL.txt",
+    "visible": false
+  },
+  {
+    "name": "Antonio Medium",
+    "file": "Antonio[wght].ttf",
+    "weight": 500,
+    "license": "Antonio-OFL.txt",
+    "visible": false
+  },
+  {
+    "name": "Fjalla One",
+    "file": "FjallaOne-Regular.ttf",
+    "weight": null,
+    "license": "FjallaOne-OFL.txt",
+    "visible": false
+  },
+  {
+    "name": "Square",
+    "pixel_files": "CatSquare_{size}.ttf",
+    "visible": true
+  },
+  {
+    "name": "Square Cut",
+    "pixel_files": "CatSquareCut_{size}.ttf",
+    "visible": true
+  }
+]

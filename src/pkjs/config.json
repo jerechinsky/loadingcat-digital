@@ -1,0 +1,243 @@
+[
+  {
+    "type": "heading",
+    "defaultValue": "Loading Cat Digital"
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Cat & spinner"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "GRAY_NOSE",
+        "label": "Dithered gray nose",
+        "defaultValue": true
+      },
+      {
+        "type": "toggle",
+        "messageKey": "SHOW_SPINNER",
+        "label": "Show spinner",
+        "defaultValue": true
+      },
+      {
+        "type": "select",
+        "messageKey": "SPOKES",
+        "label": "Number of spokes",
+        "defaultValue": "8",
+        "options": [
+          {
+            "label": "6",
+            "value": "6"
+          },
+          {
+            "label": "7",
+            "value": "7"
+          },
+          {
+            "label": "8",
+            "value": "8"
+          },
+          {
+            "label": "10",
+            "value": "10"
+          }
+        ]
+      },
+      {
+        "type": "toggle",
+        "messageKey": "SECOND_HAND",
+        "label": "Show seconds with spinner",
+        "defaultValue": true
+      },
+      {
+        "type": "text",
+        "id": "seconds-note",
+        "defaultValue": "One turn per minute, in spoke-sized steps."
+      },
+      {
+        "type": "toggle",
+        "messageKey": "ANIMATE",
+        "label": "Animate on interaction",
+        "defaultValue": true
+      },
+      {
+        "type": "toggle",
+        "messageKey": "FLICK_TRIGGER",
+        "label": "Spin on wrist flick",
+        "defaultValue": true
+      },
+      {
+        "type": "toggle",
+        "messageKey": "LIGHT_TRIGGER",
+        "label": "Spin when backlight wakes",
+        "defaultValue": true
+      },
+      {
+        "type": "text",
+        "defaultValue": "Back starts a spin when it wakes the light. Other backlight activations can also trigger it.",
+        "id": "backlight-note"
+      },
+      {
+        "type": "select",
+        "messageKey": "SPIN_MOTION",
+        "label": "Spin speed",
+        "defaultValue": "1",
+        "options": [
+          {
+            "label": "Slow loading",
+            "value": "0"
+          },
+          {
+            "label": "Fast spin",
+            "value": "1"
+          }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "SPIN_LENGTH",
+        "label": "Animation duration",
+        "defaultValue": "0",
+        "options": [
+          {
+            "label": "2 seconds",
+            "value": "2"
+          },
+          {
+            "label": "3 seconds",
+            "value": "0"
+          },
+          {
+            "label": "4 seconds",
+            "value": "1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Digital time"
+      },
+      {
+        "type": "select",
+        "messageKey": "NUMERAL_FONT",
+        "label": "Font",
+        "defaultValue": "2",
+        "options": [
+          {
+            "label": "Teko",
+            "value": "0"
+          },
+          {
+            "label": "Bebas Neue",
+            "value": "2"
+          },
+          {
+            "label": "Square",
+            "value": "7"
+          },
+          {
+            "label": "Square Cut",
+            "value": "8"
+          }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "TIME_FORMAT",
+        "label": "Time format",
+        "defaultValue": "0",
+        "options": [
+          {
+            "label": "Follow watch setting",
+            "value": "0"
+          },
+          {
+            "label": "12 hour",
+            "value": "1"
+          },
+          {
+            "label": "24 hour",
+            "value": "2"
+          }
+        ]
+      },
+      {
+        "type": "toggle",
+        "messageKey": "LEADING_ZERO",
+        "label": "Leading zero",
+        "defaultValue": true
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Temperature"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "SHOW_WEATHER",
+        "label": "Show temperature",
+        "defaultValue": true
+      },
+      {
+        "type": "select",
+        "messageKey": "FAHRENHEIT",
+        "label": "Units",
+        "defaultValue": "0",
+        "options": [
+          {
+            "label": "Celsius",
+            "value": "0"
+          },
+          {
+            "label": "Fahrenheit",
+            "value": "1"
+          }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "WEATHER_INTERVAL",
+        "label": "Refresh interval",
+        "defaultValue": "30",
+        "options": [
+          {
+            "label": "15 minutes",
+            "value": "15"
+          },
+          {
+            "label": "30 minutes",
+            "value": "30"
+          },
+          {
+            "label": "60 minutes",
+            "value": "60"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "defaultValue": "Uses your phone location. Turning temperature off also stops location and weather requests. A reading older than two hours is shown as --\u00b0. Your location is rounded before it is sent to Open-Meteo."
+      }
+    ]
+  },
+  {
+    "type": "submit",
+    "defaultValue": "Save settings"
+  },
+  {
+    "type": "text",
+    "defaultValue": "Original Loading Cat by <a href=\"https://github.com/zbzbw/loadingcat-pebble\">zbw / zbzbw</a>. Digital adaptation by jerechinsky. Teko and Bebas Neue: SIL Open Font License. Square numerals: original geometry for this project. Weather by <a href=\"https://open-meteo.com/\">Open-Meteo</a> (CC BY 4.0)."
+  }
+]

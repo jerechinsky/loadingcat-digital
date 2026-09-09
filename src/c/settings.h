@@ -8,11 +8,14 @@ typedef struct {
   int32_t numeral_font, spin_motion;
   int32_t weather_location, show_weather, fahrenheit, weather_interval, gray_nose, second_hand;
   int32_t night_pause, night_start, night_end, disconnect_vibe, disconnect_pattern, disconnect_ignore_quiet, disconnect_invert;
+  int32_t reconnect_vibe, reconnect_pattern;
 } Settings;
 
 typedef struct { const uint32_t *key; size_t offset; int32_t min, max; } SettingBinding;
 #define BIND(key, member, min, max) {&key, offsetof(Settings, member), min, max}
 static const SettingBinding SETTINGS_BINDINGS[] = {
+  BIND(MESSAGE_KEY_RECONNECT_VIBE,reconnect_vibe,0,1),
+  BIND(MESSAGE_KEY_RECONNECT_PATTERN,reconnect_pattern,0,3),
   BIND(MESSAGE_KEY_WEATHER_LOCATION_ID,weather_location,0,INT32_MAX),
   BIND(MESSAGE_KEY_DISCONNECT_INVERT,disconnect_invert,0,1),
   BIND(MESSAGE_KEY_DISCONNECT_VIBE,disconnect_vibe,0,1),

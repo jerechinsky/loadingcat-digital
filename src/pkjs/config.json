@@ -434,7 +434,7 @@
         "messageKey": "WEATHER_CITY",
         "label": "City",
         "defaultValue": "",
-        "description": "City, country code: Prague, CZ or NYC, US. USA and UK work too. Local names are supported, such as Praha, Київ, 北京 and 東京. If not found, try the full city name or its English spelling; temperature shows --° until found.",
+        "description": "Enter city, country code. For example: Prague, CZ or NYC, US. USA and UK work too. Local names are supported, such as Praha, Київ, 北京 and 東京. If not found, try the full city name or its English spelling; temperature shows --° until found.",
         "attributes": {
           "placeholder": "Prague, CZ",
           "maxlength": 80,
@@ -498,15 +498,9 @@
         "defaultValue": false
       },
       {
-        "type": "toggle",
-        "messageKey": "DISCONNECT_INVERT",
-        "label": "White cat when disconnected",
-        "defaultValue": false
-      },
-      {
         "type": "select",
         "messageKey": "DISCONNECT_PATTERN",
-        "label": "Vibration pattern",
+        "label": "Disconnect pattern",
         "defaultValue": "2",
         "options": [
           {
@@ -529,6 +523,42 @@
       },
       {
         "type": "toggle",
+        "messageKey": "RECONNECT_VIBE",
+        "label": "Vibrate on reconnect",
+        "defaultValue": false
+      },
+      {
+        "type": "select",
+        "messageKey": "RECONNECT_PATTERN",
+        "label": "Reconnect pattern",
+        "defaultValue": "0",
+        "options": [
+          {
+            "label": "Short tap",
+            "value": "0"
+          },
+          {
+            "label": "Two taps",
+            "value": "1"
+          },
+          {
+            "label": "Three quick taps",
+            "value": "2"
+          },
+          {
+            "label": "Long then short",
+            "value": "3"
+          }
+        ]
+      },
+      {
+        "type": "toggle",
+        "messageKey": "DISCONNECT_INVERT",
+        "label": "White cat when disconnected",
+        "defaultValue": false
+      },
+      {
+        "type": "toggle",
         "messageKey": "DISCONNECT_IGNORE_QUIET",
         "label": "Ignore Quiet Time",
         "defaultValue": false
@@ -536,7 +566,7 @@
       {
         "type": "text",
         "id": "disconnect-note",
-        "defaultValue": "Pebble filters brief connection drops for about 25 seconds. The face changes back when your phone reconnects. Ignore Quiet Time applies only to vibration."
+        "defaultValue": "Pebble filters brief connection drops for about 25 seconds. The face changes back when your phone reconnects. Ignore Quiet Time applies to both vibration alerts."
       }
     ]
   },

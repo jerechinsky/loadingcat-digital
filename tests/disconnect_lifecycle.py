@@ -5,7 +5,7 @@ import tempfile
 
 root = Path(__file__).resolve().parents[1]
 source = (root / 'src/c/main.c').read_text()
-handler = source[source.index('static void play_disconnect_alert('):source.index('static void load_numeral_fonts(')]
+handler = source[source.index('static void play_connection_alert('):source.index('static void load_numeral_fonts(')]
 assert source.index('s_phone_connected = connection_service_peek_pebble_app_connection();') < source.index('connection_service_subscribe(')
 assert 'connection_service_unsubscribe();' in source
 program = '''
@@ -19,7 +19,7 @@ static VibePattern last;
 static bool s_phone_connected, quiet, s_disconnect_visible;
 static int redraws;
 static void redraw(void){redraws++;}
-static struct { int disconnect_vibe, disconnect_pattern, disconnect_ignore_quiet, disconnect_invert; } s_settings;
+static struct { int disconnect_vibe, disconnect_pattern, disconnect_ignore_quiet, disconnect_invert, reconnect_vibe, reconnect_pattern; } s_settings;
 static bool disconnected_colors(void){return s_settings.disconnect_invert && s_disconnect_visible;}
 static int pulses;
 static bool quiet_time_is_active(void) { return quiet; }
@@ -60,7 +60,25 @@ int main(void) {
   before=redraws;connection_handler(false);assert(redraws==before);
   connection_handler(true);assert(!s_disconnect_visible && redraws==before+1);
   s_settings.disconnect_invert=0;before=redraws;connection_handler(false);assert(redraws==before);
-  puts("Disconnect handler passed: state-based visuals, no timer or redundant redraws; all four patterns and Quiet Time override; startup, reconnect, duplicate events, disabled setting, re-enable and Quiet Time.");
+  // Reconnect can be enabled independently, with its own pattern and shared Quiet Time rule.
+  s_settings.disconnect_vibe=0;s_settings.reconnect_vibe=1;s_settings.disconnect_ignore_quiet=0;
+  for(int pattern=0;pattern<4;++pattern) {
+    const int segments[]={1,3,5,3},durations[]={200,400,500,650};
+    s_settings.reconnect_pattern=pattern;connection_handler(false);before=pulses;
+    connection_handler(true);assert(pulses==before+1);
+    assert(last.num_segments==(unsigned)segments[pattern]);
+    int total=0;for(unsigned i=0;i<last.num_segments;++i)total+=last.durations[i];assert(total==durations[pattern]);
+    connection_handler(true);assert(pulses==before+1);
+  }
+  quiet=true;connection_handler(false);before=pulses;connection_handler(true);assert(pulses==before);
+  quiet=false;connection_handler(true);assert(pulses==before); // Never defer a suppressed buzz.
+  quiet=true;s_settings.disconnect_ignore_quiet=1;connection_handler(false);connection_handler(true);assert(pulses==before+1);
+  s_settings.reconnect_vibe=0;connection_handler(false);connection_handler(true);assert(pulses==before+1);
+  // Each direction keeps its own pattern when both are enabled.
+  quiet=false;s_settings.disconnect_vibe=1;s_settings.reconnect_vibe=1;
+  s_settings.disconnect_pattern=2;s_settings.reconnect_pattern=0;
+  connection_handler(false);assert(last.num_segments==5);connection_handler(true);assert(last.num_segments==1);
+  puts("Connection handler passed: independent disconnect/reconnect toggles and all four patterns, Quiet Time and override, silent duplicates, no deferred buzzes, state-based visuals and no new timers.");
 }
 '''
 with tempfile.TemporaryDirectory() as tmp:

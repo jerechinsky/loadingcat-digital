@@ -113,7 +113,7 @@ p=phone({defer:true});refresh(p);p.timeout();p.resolve();assert.equal(p.requests
 // Exercise every declared setting choice through the real normalization/save path.
 const config=JSON.parse(fs.readFileSync(__dirname+'/../src/pkjs/config.json','utf8'));
 const publicSettings=config.flatMap(section=>section.items||[]).filter(spec=>spec.messageKey);
-assert.equal(publicSettings.length,24,'The public menu only exposes supported presentation choices');
+assert.equal(publicSettings.length,26,'The public menu only exposes supported presentation choices');
 assert.deepEqual(publicSettings.find(spec=>spec.messageKey==='SPOKES').options.map(option=>Number(option.value)),[6,7,8,10,12]);
 for(const section of config)for(const spec of section.items||[])if(spec.messageKey){
  for(const value of spec.type==='input'?['','Prague, CZ','New York, US']:spec.type==='toggle'?[0,1]:spec.options.map(o=>Number(o.value))){
@@ -138,7 +138,7 @@ for(const spokes of [0,11]){
  assert.equal(p.savedSettings.SPOKES,8);
  for(const key of Object.keys(retiredSettings))assert.equal(p.savedSettings[key],undefined,key+' must not remain in saved settings');
  for(const [key,value] of Object.entries(preservedSettings))assert.equal(p.savedSettings[key],value,key+' must survive saving');
- assert.equal(Object.keys(p.savedSettings).length,24);
+ assert.equal(Object.keys(p.savedSettings).length,26);
 }
 // Existing installs receive the new monochrome treatment until explicitly disabled.
 p=phone({settings:{NUMERAL_FONT:2,SHOW_WEATHER:0}});p.events.ready();assert.equal(p.messages[0].GRAY_NOSE,1);
@@ -235,3 +235,9 @@ p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'東京, JP'},noCity:true});ref
 p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'東京, JP'},geoStatus:503});refresh(p);assert.equal(p.geocodes,1,'Do not retry alternate spellings after server errors');
 p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'東京, JP'},deferGeoHttp:true,noCity:true});refresh(p);p.events.webviewclosed({response:JSON.stringify({SHOW_WEATHER:0})});p.resolveGeoHttp();assert.equal(p.geocodes,1);assert.equal(p.positions,0,'Disabling weather cancels pending spelling fallbacks');
 console.log('Language checks passed: country aliases, Unicode input, localized searches, bounded Japanese-name fallback, no GPS and cancellation.');
+
+assert.equal(keys.indexOf('RECONNECT_VIBE'),38);assert.equal(keys.indexOf('RECONNECT_PATTERN'),39);
+p=phone();p.events.ready();assert.equal(p.messages[0].RECONNECT_VIBE,0);assert.equal(p.messages[0].RECONNECT_PATTERN,0);
+p.events.webviewclosed({response:JSON.stringify({RECONNECT_VIBE:1,RECONNECT_PATTERN:3,DISCONNECT_PATTERN:2})});assert.equal(p.savedSettings.RECONNECT_VIBE,1);assert.equal(p.savedSettings.RECONNECT_PATTERN,3);assert.equal(p.savedSettings.DISCONNECT_PATTERN,2);assert.equal(p.messages.at(-1).RECONNECT_PATTERN,3);
+p.events.webviewclosed({response:JSON.stringify({RECONNECT_PATTERN:99})});assert.equal(p.savedSettings.RECONNECT_PATTERN,3);
+console.log('Reconnect settings passed: off by default, independent persisted pattern, invalid-value rejection and stable message keys.');

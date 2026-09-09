@@ -170,3 +170,9 @@ Temperature caches belong to a location. The watch receives a numeric location i
 Country aliases USA/UK/GBR/CZE/UKR/CHN/JPN normalize to two-letter codes. Full-width ASCII and Japanese commas normalize too, while city scripts and diacritics are preserved. The companion selects a matching lookup language for non-Latin scripts. Two-character Japanese names first search as written, then try the municipal suffix (市, or 都 for 東京) if no populated-place match is found. This fallback is bounded to one extra lookup, only on an empty result. HTTP errors do not trigger it. Existing cache, cancellation, weather-off and retry limits still apply.
 
 The city database does not contain every nickname or spelling. The settings hint recommends a full city name or English spelling when no match is found.
+
+## 1.5.9: reconnect vibration
+
+The settings form now has 26 options. Reconnect vibration is independently enabled and uses its own pattern selection; its defaults are off and Short tap. Disconnect defaults and saved choices are preserved. Both alerts use the existing connection callback, suppress duplicate state reports and honor the shared Quiet Time preference. No polling or timer was added. Reconnect still restores normal colors regardless of vibration settings.
+
+The custom city hint now explicitly introduces its sample locations with "For example".

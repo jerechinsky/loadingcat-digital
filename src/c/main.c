@@ -334,7 +334,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits changed) {
   if (!weather_is_fresh(now) || now - s_weather_time >= s_settings.weather_interval * 60) request_weather();
 }
 
-static void play_disconnect_alert(void) {
+static void play_connection_alert(int pattern) {
   static const uint32_t short_tap[] = {200};
   static const uint32_t double_tap[] = {150, 100, 150};
   static const uint32_t triple_tap[] = {100, 100, 100, 100, 100};
@@ -345,7 +345,7 @@ static void play_disconnect_alert(void) {
     {.durations=triple_tap,.num_segments=ARRAY_LENGTH(triple_tap)},
     {.durations=long_short,.num_segments=ARRAY_LENGTH(long_short)}
   };
-  vibes_enqueue_custom_pattern(patterns[s_settings.disconnect_pattern]);
+  vibes_enqueue_custom_pattern(patterns[pattern]);
 }
 
 static void connection_handler(bool connected) {
@@ -355,8 +355,9 @@ static void connection_handler(bool connected) {
   s_phone_connected=connected;
   s_disconnect_visible=!connected;
   if(was_visible!=disconnected_colors())redraw();
-  if(!connected && s_settings.disconnect_vibe &&
-      (s_settings.disconnect_ignore_quiet || !quiet_time_is_active()))play_disconnect_alert();
+  bool enabled=connected ? s_settings.reconnect_vibe : s_settings.disconnect_vibe;
+  if(enabled && (s_settings.disconnect_ignore_quiet || !quiet_time_is_active()))
+    play_connection_alert(connected ? s_settings.reconnect_pattern : s_settings.disconnect_pattern);
 }
 
 static void load_numeral_fonts(void) {

@@ -192,13 +192,13 @@ if args.connection_check:
         send_data_to_qemu(transport,QemuBluetoothConnection(connected=connected))
         # PebbleOS debounces disconnects for 25 seconds before notifying apps.
         time.sleep(wait)
-    message(DISCONNECT_VIBE=0,DISCONNECT_IGNORE_QUIET=1)
+    message(DISCONNECT_VIBE=0,RECONNECT_VIBE=0,DISCONNECT_IGNORE_QUIET=1)
     events.clear();connection(False)
     assert not any(state for stamp,state in events),('disabled alert vibrated',events)
     connection(True)
     results=[]
     for pattern,count in enumerate([1,2,3,2]):
-        message(DISCONNECT_VIBE=1,DISCONNECT_PATTERN=pattern)
+        message(DISCONNECT_VIBE=1,DISCONNECT_PATTERN=pattern,RECONNECT_VIBE=1,RECONNECT_PATTERN=(pattern+1)%4)
         events.clear();connection(False)
         starts=[stamp for stamp,state in events if state]
         assert len(starts)==count,('wrong vibration pattern',pattern,events)
@@ -206,9 +206,14 @@ if args.connection_check:
         events.clear();connection(False)
         assert not any(state for stamp,state in events),'duplicate disconnect vibrated'
         connection(True)
-        assert not any(state for stamp,state in events),'reconnect vibrated'
-    message(DISCONNECT_VIBE=0,DISCONNECT_PATTERN=2,DISCONNECT_IGNORE_QUIET=0)
-    result={'version':meta['versionLabel'],'platform':args.platform,'disabled_silent':True,'duplicate_and_reconnect_silent':True,'patterns':results}
+        reconnect_starts=[stamp for stamp,state in events if state]
+        reconnect_count=[1,2,3,2][(pattern+1)%4]
+        assert len(reconnect_starts)==reconnect_count,('Wrong reconnect pattern',pattern,events)
+        results[-1]['reconnect_pattern']=(pattern+1)%4;results[-1]['reconnect_pulses']=len(reconnect_starts)
+        events.clear();connection(True)
+        assert not any(state for stamp,state in events),'duplicate reconnect vibrated'
+    message(DISCONNECT_VIBE=0,RECONNECT_VIBE=0,DISCONNECT_PATTERN=2,RECONNECT_PATTERN=0,DISCONNECT_IGNORE_QUIET=0)
+    result={'version':meta['versionLabel'],'platform':args.platform,'disabled_silent':True,'duplicate_disconnect_and_reconnect_silent':True,'patterns':results}
     (args.output/f'{args.platform}-disconnect-verification.json').write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps(result),flush=True)
     cleanup();raise SystemExit(0)

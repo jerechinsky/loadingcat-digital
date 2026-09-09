@@ -10,8 +10,11 @@ module.exports = function () {
     function enabled(key) { return !!Number(items[key].get()); }
     function visible(item, show) { if (item) item[show ? 'show' : 'hide'](); }
     function update() {
-      ['DISCONNECT_PATTERN','DISCONNECT_IGNORE_QUIET'].forEach(function (key) { visible(items[key], enabled('DISCONNECT_VIBE')); });
-      var connectionAlert=enabled('DISCONNECT_VIBE') || enabled('DISCONNECT_INVERT');
+      visible(items.DISCONNECT_PATTERN, enabled('DISCONNECT_VIBE'));
+      visible(items.RECONNECT_PATTERN, enabled('RECONNECT_VIBE'));
+      var vibration=enabled('DISCONNECT_VIBE') || enabled('RECONNECT_VIBE');
+      visible(items.DISCONNECT_IGNORE_QUIET, vibration);
+      var connectionAlert=vibration || enabled('DISCONNECT_INVERT');
       visible(clay.getItemById('disconnect-note'), connectionAlert);
       var spinner = enabled('SHOW_SPINNER'), interaction = spinner && enabled('ANIMATE');
       ['SPOKES', 'SECOND_HAND', 'ANIMATE'].forEach(function (key) { visible(items[key], spinner); });
@@ -27,7 +30,7 @@ module.exports = function () {
     }
     items.GRAY_NOSE[monochrome ? 'enable' : 'disable']();
     items.LIGHT_TRIGGER[backlight ? 'enable' : 'disable']();
-    ['SHOW_SPINNER', 'SECOND_HAND', 'ANIMATE', 'SHOW_WEATHER', 'WEATHER_SOURCE', 'NIGHT_PAUSE', 'DISCONNECT_VIBE', 'DISCONNECT_INVERT'].forEach(function (key) { items[key].on('change', update); });
+    ['SHOW_SPINNER', 'SECOND_HAND', 'ANIMATE', 'SHOW_WEATHER', 'WEATHER_SOURCE', 'NIGHT_PAUSE', 'DISCONNECT_VIBE', 'RECONNECT_VIBE', 'DISCONNECT_INVERT'].forEach(function (key) { items[key].on('change', update); });
     update();
   });
 };

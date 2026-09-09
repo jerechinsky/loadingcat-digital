@@ -32,9 +32,9 @@ function phone(saved={},platform='emery'){
  async function set(k,v){if(specs[k].type==='toggle')await field(k).evaluate((e,v)=>{e.checked=!!v;e.dispatchEvent(new Event('change',{bubbles:true}));},v);else if(k==='WEATHER_PLACE')await field(k).evaluate((e,v)=>e.value=v,v);else if(specs[k].type==='input')await field(k).fill(v);else await field(k).selectOption(String(v));}
  async function save(ph){await page.getByRole('button',{name:'Save settings'}).click();await page.waitForURL('https://settings.test/close#**');ph.fire('webviewclosed',{response:page.url().split('#')[1]});return JSON.parse(ph.store['loading-cat-settings-v1']);}
  async function checkStock(){
-  assert.equal(await page.locator('input[data-manipulator-target],select[data-manipulator-target]').count(),28);
+  assert.equal(await page.locator('input[data-manipulator-target],select[data-manipulator-target]').count(),27);
   assert.equal(await page.locator('canvas,.cat-preview,.cat-reset,input[type=time],input[type=range],[id^="cat-preview-"]').count(),0);
-  assert.equal(await page.getByRole('button',{includeHidden:true}).count(),2,'Save and Find place are the only buttons');
+  assert.equal(await page.getByRole('button',{includeHidden:true}).count(),1,'Save is the only form button before search results');
   assert.equal(await page.getByRole('button',{name:'Save settings'}).count(),1);
   assert.doesNotMatch(await page.locator('body').innerText(),/Example time|Example seconds|Play seconds|Pause seconds|Test animation|Reset to defaults|Live preview|Browser demo/);
   assert.match(await page.locator('body').innerText(),/Digital adaptation by yerex\./);
@@ -45,7 +45,7 @@ function phone(saved={},platform='emery'){
  assert.equal(await value('SPOKES'),8);assert.equal(await value('SPIN_MOTION'),1);assert.equal(await value('SPIN_LENGTH'),0);assert.equal(await value('SECOND_HAND'),1);
  assert.equal(await value('NIGHT_PAUSE'),0);
  assert.equal(await value('WEATHER_SOURCE'),0);assert(!await row('WEATHER_CITY').isVisible());
- await set('WEATHER_SOURCE',1);assert(await row('WEATHER_CITY').isVisible());assert.equal(await field('WEATHER_CITY').getAttribute('placeholder'),'Prague, CZ');
+ await set('WEATHER_SOURCE',1);assert(await row('WEATHER_CITY').isVisible());assert.equal(await field('WEATHER_CITY').getAttribute('placeholder'),'Brooklyn, New York');
  await set('WEATHER_CITY','Prague, CZ');await set('SHOW_WEATHER',0);assert(!await row('WEATHER_CITY').isVisible());await set('SHOW_WEATHER',1);assert.equal(await value('WEATHER_CITY'),'Prague, CZ');await set('WEATHER_CITY','');await set('WEATHER_SOURCE',0);
  assert.equal(await value('RECONNECT_VIBE'),0);assert.equal(await value('RECONNECT_PATTERN'),0);assert(!await row('RECONNECT_PATTERN').isVisible());
  assert.equal(await value('DISCONNECT_VIBE'),0);
@@ -111,7 +111,7 @@ function phone(saved={},platform='emery'){
  const demo=defaultHtml.replace('window.returnTo="pebblejs://close#"','window.returnTo="#"');
  await load(demo);await checkStock();
  fs.writeFileSync(path.join(out,'settings.html'),demo);fs.writeFileSync(path.join(out,'settings-preview.html'),demo);
- assert.deepEqual(requests,[]);assert.deepEqual(errors,[]);
+ assert(requests.every(url=>url.startsWith('https://photon.komoot.io/api/')),'Only typed place searches can contact the network');assert.deepEqual(errors,[]);
  fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify({settings:27,stock_clay:true,preview_absent:true,custom_chrome_absent:true,models:7,breakpoints:[320,390,480],offline:true,save_and_reopen:true,all_options:true,conditional_visibility:true,model_capabilities:true,hidden_preferences_preserved:true,capability_checks:capabilityChecks,choices_tested:exercised},null,2)+'\n');
  console.log('Stock Clay checks passed:26 visible settings plus saved place, all choices,7 model capabilities, conditional visibility, hidden preference persistence, offline load and responsive form.');
  }finally{await browser.close();}

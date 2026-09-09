@@ -6,7 +6,7 @@ var LOCAL_LANGUAGES={CZ:'cs',SK:'sk',PL:'pl',DE:'de',AT:'de',CH:'de fr it',LI:'d
 exports.normalize = function (value) {
   if (typeof value !== 'string') return '';
   var text=value.replace(/[\uff01-\uff5e]/g,function (c) {return String.fromCharCode(c.charCodeAt(0)-0xfee0);})
-    .replace(/[、،]/g,',').replace(/[\x00-\x1f\x7f]/g,' ').replace(/\s+/g,' ').trim().slice(0,80)
+    .replace(/[<>]/g,'').replace(/[、،]/g,',').replace(/[\x00-\x1f\x7f]/g,' ').replace(/\s+/g,' ').trim().slice(0,80)
     .replace(/\s*,\s*/g,', ');
   return text.replace(/, ([a-z]{2,3})$/i,function (_,country) {
     country=country.toUpperCase();return ', '+(COUNTRY_ALIASES[country] || country);
@@ -88,21 +88,55 @@ exports.find = function (results,place,query) {
   var matches=exports.matches(results,place,query);
   return matches.length===1?matches[0]:null;
 };
+// Neighborhood search is only used by the settings page, after typing pauses.
+exports.suggestionUrl = function (input) {
+  var text=exports.normalize(input),place=exports.parse(text);
+  if(text.length<2)return null;
+  // Let the geocoder interpret ambiguous region abbreviations (e.g. CA).
+  var states=' AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY ';
+  var filter=place && states.indexOf(' '+place.country+' ')<0;
+  var query=filter?place.city+(place.region?', '+place.region:''):text;
+  query=query.replace(/\bnyc\b/gi,'New York');
+  return 'https://photon.komoot.io/api/?q='+encodeURIComponent(query)+'&limit=10&layer=city&layer=district&layer=locality&layer=county'+(filter?'&countrycode='+place.country:'');
+};
+function validSelected(r,place) {
+  if(!r || typeof r.name!=='string' || !r.name || typeof r.country_code!=='string' || !/^[A-Z]{2}$/.test(r.country_code) ||
+    typeof r.latitude!=='number' || typeof r.longitude!=='number' ||
+    !isFinite(r.latitude) || !isFinite(r.longitude) || Math.abs(r.latitude)>90 || Math.abs(r.longitude)>180)return false;
+  if(r.provider==='photon')return typeof r.id==='string' && /^osm:[NWR]:[1-9][0-9]*$/.test(r.id);
+  return !!place && exports.candidates([r],place).length>0;
+}
+exports.suggestions = function (body,input) {
+  if(!body || !Array.isArray(body.features))return [];
+  var seen={},place=exports.parse(input),results=[];
+  body.features.forEach(function(f){
+    if(!f || !f.properties || !f.geometry || f.geometry.type!=='Point' || !Array.isArray(f.geometry.coordinates))return;
+    var p=f.properties,c=f.geometry.coordinates;
+    // Ignore shops, buildings and roads when choosing a weather location.
+    if(['city','district','locality','county'].indexOf(p.type)<0 || (p.osm_key!=='place' && p.osm_key!=='boundary'))return;
+    var r={provider:'photon',id:'osm:'+p.osm_type+':'+p.osm_id,name:p.name,admin2:[p.district,p.city].filter(function(x,i,a){return x && x!==p.name && a.indexOf(x)===i;}).join(', '),
+      admin1:p.state || p.county || '',country:p.country,country_code:p.countrycode,latitude:c[1],longitude:c[0]};
+    if(!validSelected(r,place) || seen[r.id])return;
+    seen[r.id]=true;if(results.length<5)results.push(r);
+  });
+  return results;
+};
 exports.selection = function (values) {
   try {
     var raw=values.WEATHER_PLACE;
     if(typeof raw!=='string' || raw.length>1024)return null;
     var selected=JSON.parse(raw),place=exports.parse(values.WEATHER_CITY);
-    if(!place || selected.input!==exports.normalize(values.WEATHER_CITY) || !exports.candidates([selected],place).length)return null;
+    if(selected.input!==exports.normalize(values.WEATHER_CITY) || !validSelected(selected,place))return null;
     return selected;
   }catch(e){return null;}
 };
+function safeLabel(value,limit){return typeof value==='string'?value.replace(/[<>\x00-\x1f\x7f]/g,'').slice(0,limit):'';}
 exports.encodeSelection = function (result,input) {
   var place=exports.parse(input);
-  if(!place || !exports.candidates([result],place).length)return '';
-  return JSON.stringify({input:exports.normalize(input),id:result.id,name:result.name.slice(0,100),
-    admin1:typeof result.admin1==='string'?result.admin1.slice(0,100):'',admin2:typeof result.admin2==='string'?result.admin2.slice(0,100):'',
-    country:typeof result.country==='string'?result.country.slice(0,80):result.country_code,country_code:result.country_code,feature_code:result.feature_code,
+  if(!validSelected(result,place))return '';
+  return JSON.stringify({input:exports.normalize(input),provider:result.provider==='photon'?'photon':'geonames',id:result.id,name:safeLabel(result.name,100),
+    admin1:safeLabel(result.admin1,100),admin2:safeLabel(result.admin2,100),
+    country:safeLabel(result.country,80)||result.country_code,country_code:result.country_code,feature_code:result.feature_code,
     latitude:Number(result.latitude.toFixed(2)),longitude:Number(result.longitude.toFixed(2))});
 };
 exports.scope = function (values) {

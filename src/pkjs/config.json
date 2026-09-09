@@ -424,7 +424,7 @@
             "value": "0"
           },
           {
-            "label": "Custom city",
+            "label": "Custom place",
             "value": "1"
           }
         ]
@@ -432,37 +432,22 @@
       {
         "type": "input",
         "messageKey": "WEATHER_CITY",
-        "label": "City",
+        "label": "Search place",
         "defaultValue": "",
-        "description": "Enter a city or village and country code. For example: Prague, CZ or Praha, CZ. English and local names are supported; USA and UK work too. You can add a region, like Springfield, IL, US. Tap Find place to check the location.",
+        "description": "City, village or neighborhood. For example: Brooklyn, New York. Country codes are optional. Results appear after you pause typing; tap one to choose it.",
         "attributes": {
-          "placeholder": "Prague, CZ",
+          "placeholder": "Brooklyn, New York",
           "maxlength": 80,
-          "type": "text",
-          "autocorrect": "off"
+          "type": "search",
+          "autocorrect": "off",
+          "autocomplete": "off",
+          "enterkeyhint": "search"
         }
-      },
-      {
-        "type": "button",
-        "id": "find-place",
-        "defaultValue": "Find place"
-      },
-      {
-        "type": "select",
-        "id": "place-results",
-        "label": "Choose a place",
-        "defaultValue": "",
-        "options": [
-          {
-            "label": "Choose a match",
-            "value": ""
-          }
-        ]
       },
       {
         "type": "text",
         "id": "place-status",
-        "defaultValue": "Find place needs internet. If a name is missing, try its full name or English spelling."
+        "defaultValue": "Type a place to search."
       },
       {
         "type": "input",
@@ -608,6 +593,6 @@
   },
   {
     "type": "text",
-    "defaultValue": "Original Loading Cat by <a href=\"https://github.com/zbzbw/loadingcat-pebble\">zbw / zbzbw</a>. Digital adaptation by yerex. Teko and Bebas Neue: SIL Open Font License. Square numerals: original geometry for this project. Weather by <a href=\"https://open-meteo.com/\">Open-Meteo</a> (CC BY 4.0). City lookup uses GeoNames."
+    "defaultValue": "Original Loading Cat by <a href=\"https://github.com/zbzbw/loadingcat-pebble\">zbw / zbzbw</a>. Digital adaptation by yerex. Teko and Bebas Neue: SIL Open Font License. Square numerals: original geometry for this project. Weather by <a href=\"https://open-meteo.com/\">Open-Meteo</a> (CC BY 4.0). Place search by <a href=\"https://photon.komoot.io/\">Photon</a>, using <a href=\"https://www.openstreetmap.org/copyright\">© OpenStreetMap contributors</a> data. Older city lookups use GeoNames."
   }
 ]

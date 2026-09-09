@@ -7,7 +7,7 @@ A digital variant of ["loading cat" by zbw / zbzbw](https://github.com/zbzbw/loa
 ![Loading Cat Digital on all seven platforms](docs/all-models.png)
 
 - **time:** stacked hours and minutes. four fonts: Bebas Neue, Teko, Square and Square Cut. follows the watch's time format, or choose 12/24-hour and a leading zero.
-- **temperature:** optional weather from your phone's location or a chosen city or village, in °C or °F. find a place and check its region and country before choosing it. refresh every 15, 30 or 60 minutes. turning it off stops location and weather requests.
+- **temperature:** optional weather from your phone's location or a chosen city, village or neighborhood, in °C or °F. type a place and tap a matching result. refresh every 15, 30 or 60 minutes. turning it off stops location and weather requests.
 - **seconds:** the spinner makes one turn per minute. choose 6, 7, 8, 10 or 12 spokes; timing adjusts automatically (5 seconds per step with 12). seconds mode can be switched off.
 - **animation:** flick your wrist for a spin that slows down, then returns to the current seconds position. choose slow or fast, lasting 2, 3 or 4 seconds. default is fast, 3 seconds, 8 spokes. the spinner, animation and individual triggers can be switched off.
 - **nighttime:** optionally pause wrist-flick and backlight spins during chosen hours (initially 22:00–07:00). the seconds indicator keeps running.
@@ -17,7 +17,7 @@ A digital variant of ["loading cat" by zbw / zbzbw](https://github.com/zbzbw/loa
 
 Works on Pebble, Steel, Time, Time Steel, Time Round, Pebble 2, Time 2, 2 Duo and Round 2. Settings keep your preferences and work offline; place search and weather need internet. Weather readings disappear after two hours.
 
-For fixed weather, choose **Custom city**, enter a name and country code, then tap **Find place**. For example: `Prague, CZ`, `Praha, CZ`, `Київ, UA` or `NYC, USA`. The results show the city, region and country. You can also narrow the search with a region, like `Springfield, IL, US`. Villages and local scripts are supported where the lookup service has them; try the full name or English spelling if nothing appears. Custom mode never asks for your phone location.
+For fixed weather, choose **Custom place** and type a city, village or neighborhood, for example `Prague, CZ` or `Brooklyn, New York`. Results appear after you pause typing. Tap the right place, then save. Country codes are optional; the results show the location so you can tell namesakes apart. Custom mode never asks for your phone location.
 
 The clock ticks once a minute; the seconds spinner only wakes at each spoke. Animations pause when the face is covered, and disabled triggers unsubscribe. [battery audit](docs/battery-audit.md)
 
@@ -27,4 +27,4 @@ Build with the Pebble SDK:
 pebble build
 ```
 
-Adapted by **yerex** (jerechinsky on GitHub). Weather: [Open-Meteo](https://open-meteo.com/), CC BY 4.0. Fonts and Clay: [credits and licenses](THIRD_PARTY_NOTICES.md). [upstream license status](UPSTREAM.md) · [privacy](PRIVACY.md) · [technical notes](docs/technical-notes.md)
+Adapted by **yerex** (jerechinsky on GitHub). Weather: [Open-Meteo](https://open-meteo.com/), CC BY 4.0. Place search: [Photon](https://photon.komoot.io/) / [© OpenStreetMap contributors](https://www.openstreetmap.org/copyright). Fonts and Clay: [credits and licenses](THIRD_PARTY_NOTICES.md). [upstream license status](UPSTREAM.md) · [privacy](PRIVACY.md) · [technical notes](docs/technical-notes.md)

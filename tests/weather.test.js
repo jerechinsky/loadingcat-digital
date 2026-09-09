@@ -265,3 +265,14 @@ assert.equal(keys.indexOf('WEATHER_PLACE'),40);
 console.log('Place picker data passed: explicit coordinates, phone-only persistence, selection validation, no repeated geocoding, stale-result cancellation, local languages, regional qualifiers and ambiguous/prefix rejection.');
 p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'München, DE'},geoResults:n=>n===1?[{...chosen,id:2867714,name:'München',country_code:'DE'},{...chosen,id:2867711,name:'München',country_code:'DE'}]:[{...chosen,id:2867711,name:'München',country_code:'DE'}]});refresh(p);assert.equal(p.geocodes,1);assert.equal(p.requests,0,'An ambiguous local match must not fall through to a misleading English namesake');
 console.log('Ambiguous local names remain unresolved until a place is chosen.');
+
+const neighborhood={provider:'photon',id:'osm:R:9691750',name:'Brooklyn',admin2:'New York',country:'United States',country_code:'US',latitude:40.6526006,longitude:-73.9497211};
+const freeform={WEATHER_SOURCE:1,WEATHER_CITY:'Brooklyn New York',WEATHER_PLACE:location.encodeSelection(neighborhood,'Brooklyn New York')};
+p=phone({settings:freeform});p.events.ready();refresh(p);assert.equal(p.positions,0);assert.equal(p.geocodes,0);assert.equal(p.requests,1);assert.match(p.urls[0],/latitude=40.65&longitude=-73.95/);assert.equal(p.messages[0].WEATHER_PLACE,undefined);
+p.events.webviewclosed({response:JSON.stringify({NUMERAL_FONT:7})});assert.equal(JSON.parse(p.savedSettings.WEATHER_PLACE).id,neighborhood.id);
+p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'Brooklyn New York'}});refresh(p);assert.equal(p.requests+p.geocodes+p.positions,0,'Unselected free text must not silently pick a location or fall back to GPS');
+assert.notEqual(location.scope(freeform),location.scope({...freeform,WEATHER_PLACE:''}));
+for(const id of ['osm:N:NaN','osm:X:4','osm:N:-1'])assert.equal(location.encodeSelection({...neighborhood,id},freeform.WEATHER_CITY),'');
+console.log('Free-form neighborhood selection passed: correct forecast coordinates, saved choice, distinct cache identity, no GPS or repeat lookup, no automatic choice.');
+
+assert(!location.encodeSelection({...neighborhood,name:'</script><b>Brooklyn</b>'},freeform.WEATHER_CITY).includes('<'),'External place labels cannot terminate the embedded settings script');

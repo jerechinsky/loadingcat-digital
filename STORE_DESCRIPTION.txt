@@ -1,8 +1,8 @@
 A digital variant of "loading cat" by zbw / zbzbw. Really like the original, just wanted a digital clock too. Thanks to zbw for the watchface and cat artwork!
 
 - stacked hours and minutes, with four fonts and 12/24-hour time
-- optional temperature in °C or °F, using your phone's location or a chosen city or village
-- place search with city, region and country shown before you choose
+- optional temperature in °C or °F, using your phone's location or a chosen city, village or neighborhood
+- type a place and tap a result, with city, region and country shown
 - a seconds spinner with 6, 7, 8, 10 or 12 spokes
 - wrist-flick and supported backlight spins, with two speeds and 2–4-second animations
 - optional nighttime pause for animations; seconds keep going
@@ -15,3 +15,4 @@ Works on all Pebble models. Weather refreshes every 15, 30 or 60 minutes; turnin
 Original: https://github.com/zbzbw/loadingcat-pebble
 Adapted by yerex
 Weather: Open-Meteo, CC BY 4.0
+Place search: Photon / © OpenStreetMap contributors

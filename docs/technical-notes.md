@@ -190,3 +190,13 @@ The live suite in `tests/location-live.test.js` covers 63 public inputs, includi
 `tests/place-picker.test.js` checks the actual shipped settings bundle with controlled responses: explicit search, same-name towns, region/country labels, selection and save/reopen, cancellation, hidden controls and network/response errors. The existing weather and settings tests also cover the added saved-place data. No analytics were added.
 
 The backlight hint now explicitly says Back button. Pebble exposes an on/off backlight event with no activation reason. A wrist flick that turns the light on can still trigger the backlight option when the separate flick option is disabled; both triggers must be off for seconds-only behavior. No unreliable motion-based guess was added.
+
+## 1.6.1: inline neighborhood suggestions
+
+The Find place button and select dropdown are replaced by a free-form search field and up to five tappable results. Photon / OpenStreetMap supplies city, district, locality and county results; shops, buildings and roads are filtered out. Country codes are optional, and district/city/country labels remain visible so mismatched names can be noticed. Results show their district, city and country rather than assuming the first match is correct.
+
+Search waits 900 ms after input, defers while IME composition is active, cancels obsolete requests and uses a 10-second HTTP timeout. Twenty queries can be cached in the current page. A 429 response delays subsequent requests by 10 seconds. Opening settings does not search. Hiding custom mode or weather, leaving the page and editing the query cancel pending requests. No GPS bias or extra watch polling is used.
+
+Photon selections use namespaced OpenStreetMap IDs (`osm:N:...`, `osm:W:...`, `osm:R:...`) and the existing rounded-coordinate cache identity. Older GeoNames selections and the old city/country fallback remain valid. Free-form input without a chosen result never silently selects a location. Forecast scheduling, watch code and artwork are unchanged.
+
+`tests/neighborhood-live.test.js` verifies 10 public city/neighborhood/village queries against expected coordinates. The updated `tests/place-picker.test.js` checks the shipped bundle's debounce, composition events, page cache, tappable results, preservation across Save/reopen, cancellation, network errors and mobile layout. It also verifies a real Photon search from the embedded data-URI settings page. The previous 63-case GeoNames live test is retained for the unchanged legacy lookup, not presented as Photon coverage.

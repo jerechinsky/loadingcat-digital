@@ -1,4 +1,4 @@
-/* Standard Clay controls, with an explicit phone-only place lookup. */
+/* Stock Clay form with a debounced, phone-only place suggestion list. */
 module.exports = function () {
   var clay = this;
   clay.on(clay.EVENTS.AFTER_BUILD, function () {
@@ -10,58 +10,64 @@ module.exports = function () {
     function enabled(key) { return !!Number(items[key].get()); }
     function visible(item, show) { if (item) item[show ? 'show' : 'hide'](); }
     var location=clay.meta.userData.createLocation();
-    var find=clay.getItemById('find-place'),results=clay.getItemById('place-results'),status=clay.getItemById('place-status');
-    var choices=[],xhr=null,generation=0,timeout=null;
+    var status=clay.getItemById('place-status'),field=items.WEATHER_CITY.$manipulatorTarget[0];
+    var list=document.createElement('div');list.className='place-suggestions';list.setAttribute('role','group');list.setAttribute('aria-label','Place suggestions');
+    status.$element[0].parentNode.insertBefore(list,status.$element[0]);
+    status.$element[0].setAttribute('role','status');status.$element[0].setAttribute('aria-live','polite');
+    var style=document.createElement('style');style.textContent='.place-suggestions{padding:0 12px}.place-suggestions button.place-result{display:block;width:100%;min-height:48px;margin:0;padding:12px;text-align:left;text-transform:none;background:transparent;color:inherit;border:0;border-bottom:1px solid #666;white-space:normal;line-height:1.4;font-size:16px}.place-result strong,.place-result small{display:block}.place-result small{font-size:13px;opacity:.75}.place-result:focus{outline:2px solid #ff5500;outline-offset:-2px}';document.head.appendChild(style);
+    var xhr=null,generation=0,timer=null,composing=false,retryAt=0,cache={},cacheOrder=[];
     function cityMode(){return enabled('SHOW_WEATHER') && enabled('WEATHER_SOURCE');}
     function message(text){status.$element[0].textContent=text;}
     function label(r){return [r.name,r.admin2,r.admin1,r.country || r.country_code].filter(function(x,i,a){return x && a.indexOf(x)===i;}).join(', ');}
     function selection(){return location.selection({WEATHER_CITY:items.WEATHER_CITY.get(),WEATHER_PLACE:items.WEATHER_PLACE.get()});}
-    function stop(){generation++;if(timeout!==null)clearTimeout(timeout);timeout=null;var pending=xhr;xhr=null;if(pending)pending.abort();find.enable();find.set('Find place');}
-    function resetChoices(){choices=[];var select=results.$manipulatorTarget[0];while(select.firstChild)select.removeChild(select.firstChild);var option=document.createElement('option');option.value='';option.textContent='Choose a match';select.appendChild(option);results.hide();}
-    function showSelected(){var chosen=selection();message(chosen?'Selected: '+label(chosen):'Find place needs internet. If a name is missing, try its full name or English spelling.');}
-    function changed(){stop();resetChoices();if(!selection())items.WEATHER_PLACE.set('');showSelected();}
-    function render(){
-      var select=results.$manipulatorTarget[0];
-      choices.forEach(function(r,i){var option=document.createElement('option');option.value=String(i);option.textContent=label(r);select.appendChild(option);});
-      visible(results,cityMode() && choices.length>0);
+    function stop(){generation++;if(timer!==null)clearTimeout(timer);timer=null;var pending=xhr;xhr=null;if(pending)pending.abort();}
+    function clear(){while(list.firstChild)list.removeChild(list.firstChild);list.hidden=true;}
+    function showSelected(){var chosen=selection();message(chosen?'Selected: '+label(chosen):'Type a place to search.');}
+    function render(choices){
+      clear();
+      choices.forEach(function(r){
+        var button=document.createElement('button'),name=document.createElement('strong'),detail=document.createElement('small');
+        button.type='button';button.className='place-result';name.textContent=r.name;
+        detail.textContent=[r.admin2,r.admin1,r.country || r.country_code].filter(function(x,i,a){return x && x!==r.name && a.indexOf(x)===i;}).join(', ');
+        button.appendChild(name);button.appendChild(detail);
+        button.addEventListener('click',function(){stop();items.WEATHER_PLACE.set(location.encodeSelection(r,items.WEATHER_CITY.get()));clear();message('Selected: '+label(r)+'. Tap Save settings to use it.');field.blur();});
+        list.appendChild(button);
+      });
+      list.hidden=!cityMode() || !choices.length;
+      message(choices.length?'Tap a place to choose it.':'No places found. Try the neighborhood and city, or another spelling.');
     }
-    results.on('change',function(){
-      var value=results.get(),chosen=value!==''?choices[Number(value)]:null;
-      if(!chosen){items.WEATHER_PLACE.set('');showSelected();return;}
-      items.WEATHER_PLACE.set(location.encodeSelection(chosen,items.WEATHER_CITY.get()));
-      message('Selected: '+label(chosen)+'. Tap Save settings to use it.');
-    });
-    items.WEATHER_CITY.on('input change',changed);
-    find.on('click',function(){
-      if(!cityMode())return;
-      stop();resetChoices();var input=location.normalize(items.WEATHER_CITY.get()),place=location.parse(input);
-      if(!place){message('Enter city, country code. For example: Prague, CZ.');return;}
-      var token=generation,queries=location.searches(place,navigator.language),index=0;
-      find.disable();find.set('Searching…');message('Looking for places…');
+    function search(){
+      timer=null;if(!cityMode() || composing)return;
+      var input=location.normalize(items.WEATHER_CITY.get()),url=location.suggestionUrl(input);
+      if(!url){message('Type at least two characters.');return;}
+      var key='q:'+input;if(cache[key]){render(cache[key]);return;}
+      var token=generation,request=new XMLHttpRequest();xhr=request;message('Searching…');
       function current(){return token===generation && cityMode() && input===location.normalize(items.WEATHER_CITY.get());}
-      function finish(error){if(!current())return;stop();render();message(error || (choices.length?'Choose the matching city, region and country from the list.':'No places found. Try the full name or English spelling.'));}
-      timeout=setTimeout(function(){finish('Lookup timed out. Check your connection and try again.');},30000);
-      function next(){
-        if(!current())return;
-        var query=queries[index++];xhr=new XMLHttpRequest();var request=xhr;
-        request.open('GET','https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(query.name)+'&countryCode='+place.country+'&count=20&language='+query.language+'&format=json',true);
-        request.timeout=8000;
-        request.onload=function(){
-          if(!current())return;xhr=null;
-          if(request.status!==200){finish('Place lookup is unavailable. Try again later.');return;}
-          try{
-            var found=location.candidates(JSON.parse(request.responseText).results,place);
-            found.forEach(function(r){if(!choices.some(function(c){return c.id===r.id;}))choices.push(r);});
-            if(location.matches(found,place,query).length || index>=queries.length){finish();return;}
-            next();
-          }catch(e){finish('Place lookup returned an unreadable response. Try again.');}
-        };
-        request.onerror=request.ontimeout=function(){finish('Could not reach place lookup. Check your connection and try again.');};
-        request.onabort=function(){};request.send();
-      }
-      next();
-    });
-    items.WEATHER_PLACE.hide();resetChoices();showSelected();
+      request.open('GET',url,true);request.timeout=10000;
+      request.onload=function(){
+        if(!current())return;xhr=null;
+        if(request.status!==200){if(request.status===429)retryAt=Date.now()+10000;message('Place search is unavailable. Try again shortly.');return;}
+        try{var body=JSON.parse(request.responseText);if(!body || !Array.isArray(body.features))throw Error('Invalid response');var choices=location.suggestions(body,input);
+          cache[key]=choices;cacheOrder.push(key);if(cacheOrder.length>20)delete cache[cacheOrder.shift()];render(choices);
+        }catch(e){message('Could not read the search results. Try again.');}
+      };
+      request.onerror=request.ontimeout=function(){if(current()){xhr=null;message('Could not reach place search. Check your connection and try again.');}};
+      request.onabort=function(){};request.send();
+    }
+    function schedule(immediate){
+      stop();clear();if(!selection())items.WEATHER_PLACE.set('');
+      if(!cityMode() || composing)return;
+      var input=location.normalize(items.WEATHER_CITY.get());
+      if(selection()){showSelected();return;}
+      if(input.length<2){message(input?'Type at least two characters.':'Type a place to search.');return;}
+      message('Waiting for typing to finish…');
+      timer=setTimeout(search,Math.max(immediate?0:900,retryAt-Date.now()));
+    }
+    field.addEventListener('input',function(){schedule(false);});
+    field.addEventListener('compositionstart',function(){composing=true;stop();clear();items.WEATHER_PLACE.set('');});
+    field.addEventListener('compositionend',function(){composing=false;schedule(false);});
+    field.addEventListener('keydown',function(e){if(e.key==='Enter' || e.keyCode===13){e.preventDefault();if(!composing)schedule(true);}if(e.key==='Escape'){stop();clear();showSelected();}});
+    items.WEATHER_PLACE.hide();clear();showSelected();
     window.addEventListener('pagehide',stop);
     function update() {
       visible(items.DISCONNECT_PATTERN, enabled('DISCONNECT_VIBE'));
@@ -81,8 +87,8 @@ module.exports = function () {
       visible(items.GRAY_NOSE, monochrome);
       ['FAHRENHEIT', 'WEATHER_INTERVAL', 'WEATHER_SOURCE'].forEach(function (key) { visible(items[key], enabled('SHOW_WEATHER')); });
       visible(items.WEATHER_CITY,cityMode());
-      visible(find,cityMode());visible(status,cityMode());visible(results,cityMode() && choices.length>0);
-      if(!cityMode())stop();
+      visible(status,cityMode());
+      if(!cityMode()){stop();clear();}
     }
     items.GRAY_NOSE[monochrome ? 'enable' : 'disable']();
     items.LIGHT_TRIGGER[backlight ? 'enable' : 'disable']();

@@ -50,7 +50,8 @@ function refreshWeather() {
   if (!preferences.values.SHOW_WEATHER) return;
   var scope=location.scope(preferences.values);
   var city=preferences.values.WEATHER_SOURCE ? location.parse(preferences.values.WEATHER_CITY) : null;
-  if(preferences.values.WEATHER_SOURCE && !city)return;
+  var selected=preferences.values.WEATHER_SOURCE?location.selection(preferences.values):null;
+  if(preferences.values.WEATHER_SOURCE && !city && !selected)return;
   var cached = readCache();
   if (cached) sendWeather(cached);
   if (cached && Date.now() - cached.time * 1000 < preferences.values.WEATHER_INTERVAL * 60 * 1000) return;
@@ -98,8 +99,7 @@ function refreshWeather() {
     xhr.onabort = done;
     xhr.send();
   }
-  if(city) {
-    var selected=location.selection(preferences.values);
+  if(city || selected) {
     if(selected){forecast(selected.latitude,selected.longitude);return;}
     try {
       var saved=JSON.parse(localStorage.getItem(CITY_CACHE_KEY) || 'null');

@@ -17,12 +17,12 @@ module.exports = function () {
     var style=document.createElement('style');style.textContent='.place-suggestions{padding:0 12px}.place-suggestions button.place-result{display:block;width:100%;min-height:48px;margin:0;padding:12px;text-align:left;text-transform:none;background:transparent;color:inherit;border:0;border-bottom:1px solid #666;white-space:normal;line-height:1.4;font-size:16px}.place-result strong,.place-result small{display:block}.place-result small{font-size:13px;opacity:.75}.place-result:focus{outline:2px solid #ff5500;outline-offset:-2px}';document.head.appendChild(style);
     var xhr=null,generation=0,timer=null,composing=false,retryAt=0,cache={},cacheOrder=[];
     function cityMode(){return enabled('SHOW_WEATHER') && enabled('WEATHER_SOURCE');}
-    function message(text){status.$element[0].textContent=text;}
+    function message(text){status.$element[0].textContent=text;visible(status,cityMode() && !!text);}
     function label(r){return [r.name,r.admin2,r.admin1,r.country || r.country_code].filter(function(x,i,a){return x && a.indexOf(x)===i;}).join(', ');}
     function selection(){return location.selection({WEATHER_CITY:items.WEATHER_CITY.get(),WEATHER_PLACE:items.WEATHER_PLACE.get()});}
     function stop(){generation++;if(timer!==null)clearTimeout(timer);timer=null;var pending=xhr;xhr=null;if(pending)pending.abort();}
     function clear(){while(list.firstChild)list.removeChild(list.firstChild);list.hidden=true;}
-    function showSelected(){var chosen=selection();message(chosen?'Selected: '+label(chosen):'Type a place to search.');}
+    function showSelected(){var chosen=selection();message(chosen?'Selected: '+label(chosen):'');}
     function render(choices){
       clear();
       choices.forEach(function(r){
@@ -30,11 +30,11 @@ module.exports = function () {
         button.type='button';button.className='place-result';name.textContent=r.name;
         detail.textContent=[r.admin2,r.admin1,r.country || r.country_code].filter(function(x,i,a){return x && x!==r.name && a.indexOf(x)===i;}).join(', ');
         button.appendChild(name);button.appendChild(detail);
-        button.addEventListener('click',function(){stop();items.WEATHER_PLACE.set(location.encodeSelection(r,items.WEATHER_CITY.get()));clear();message('Selected: '+label(r)+'. Tap Save settings to use it.');field.blur();});
+        button.addEventListener('click',function(){stop();items.WEATHER_PLACE.set(location.encodeSelection(r,items.WEATHER_CITY.get()));clear();message('Selected: '+label(r));field.blur();});
         list.appendChild(button);
       });
       list.hidden=!cityMode() || !choices.length;
-      message(choices.length?'Tap a place to choose it.':'No places found. Try the neighborhood and city, or another spelling.');
+      message(choices.length?'Tap a result.':'No places found. Try the neighborhood and city, or another spelling.');
     }
     function search(){
       timer=null;if(!cityMode() || composing)return;
@@ -59,7 +59,7 @@ module.exports = function () {
       if(!cityMode() || composing)return;
       var input=location.normalize(items.WEATHER_CITY.get());
       if(selection()){showSelected();return;}
-      if(input.length<2){message(input?'Type at least two characters.':'Type a place to search.');return;}
+      if(input.length<2){message(input?'Type at least two characters.':'');return;}
       message('Waiting for typing to finish…');
       timer=setTimeout(search,Math.max(immediate?0:900,retryAt-Date.now()));
     }
@@ -87,7 +87,7 @@ module.exports = function () {
       visible(items.GRAY_NOSE, monochrome);
       ['FAHRENHEIT', 'WEATHER_INTERVAL', 'WEATHER_SOURCE'].forEach(function (key) { visible(items[key], enabled('SHOW_WEATHER')); });
       visible(items.WEATHER_CITY,cityMode());
-      visible(status,cityMode());
+      visible(status,cityMode() && !!status.$element[0].textContent);
       if(!cityMode()){stop();clear();}
     }
     items.GRAY_NOSE[monochrome ? 'enable' : 'disable']();

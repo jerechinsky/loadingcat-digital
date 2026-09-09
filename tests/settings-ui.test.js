@@ -76,14 +76,14 @@ function phone(saved={},platform='emery'){
   const mono=['aplite','diorite','flint'].includes(model),light=['emery','flint','gabbro'].includes(model);
   assert.equal(await row('GRAY_NOSE').isVisible(),mono);assert.equal(await field('GRAY_NOSE').isEnabled(),mono);
   assert.equal(await row('LIGHT_TRIGGER').isVisible(),light);assert.equal(await field('LIGHT_TRIGGER').isEnabled(),light);
-  assert.equal(await page.getByText('The Back button starts a spin only when it turns the backlight on. Wrist flicks that wake the light also trigger this, even with Spin on wrist flick off. Pebble cannot tell these apart. Turn both triggers off for seconds only.',{exact:true}).isVisible(),light);
+  assert.equal(await page.getByText('The Back button and wrist flicks can both wake the light and start a spin, even with the wrist-flick option off. Pebble cannot tell them apart.',{exact:true}).isVisible(),light);
   await set('SHOW_SPINNER',0);assert(await row('DISCONNECT_VIBE').isVisible());
   for(const key of ['SPOKES','SECOND_HAND','ANIMATE','FLICK_TRIGGER','LIGHT_TRIGGER','SPIN_MOTION','SPIN_LENGTH'])assert(!await row(key).isVisible(),key+' hides with spinner');
-  assert(!await page.getByText('One turn per minute, in spoke-sized steps.',{exact:true}).isVisible());
+  assert(!await page.getByText('One turn per minute.',{exact:true}).isVisible());
   await set('SHOW_SPINNER',1);await set('ANIMATE',0);
   for(const key of ['FLICK_TRIGGER','LIGHT_TRIGGER','SPIN_MOTION','SPIN_LENGTH'])assert(!await row(key).isVisible(),key+' hides with interaction');
   assert(await row('SECOND_HAND').isVisible(),'Seconds remain independent of interaction animation');
-  await set('SECOND_HAND',0);assert(!await page.getByText('One turn per minute, in spoke-sized steps.',{exact:true}).isVisible());await set('SECOND_HAND',1);await set('ANIMATE',1);
+  await set('SECOND_HAND',0);assert(!await page.getByText('One turn per minute.',{exact:true}).isVisible());await set('SECOND_HAND',1);await set('ANIMATE',1);
   await set('SHOW_WEATHER',0);assert(!await row('FAHRENHEIT').isVisible());assert(!await row('WEATHER_INTERVAL').isVisible());assert(await row('NUMERAL_FONT').isVisible());await set('SHOW_WEATHER',1);
   assert(await row('FAHRENHEIT').isVisible());assert(await row('WEATHER_INTERVAL').isVisible());
   const saved=await save(ph);assert.deepEqual(saved,preferences,'Hidden/disabled preferences survive Save on '+model);

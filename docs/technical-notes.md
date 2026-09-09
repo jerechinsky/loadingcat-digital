@@ -200,3 +200,7 @@ Search waits 900 ms after input, defers while IME composition is active, cancels
 Photon selections use namespaced OpenStreetMap IDs (`osm:N:...`, `osm:W:...`, `osm:R:...`) and the existing rounded-coordinate cache identity. Older GeoNames selections and the old city/country fallback remain valid. Free-form input without a chosen result never silently selects a location. Forecast scheduling, watch code and artwork are unchanged.
 
 `tests/neighborhood-live.test.js` verifies 10 public city/neighborhood/village queries against expected coordinates. The updated `tests/place-picker.test.js` checks the shipped bundle's debounce, composition events, page cache, tappable results, preservation across Save/reopen, cancellation, network errors and mobile layout. It also verifies a real Photon search from the embedded data-URI settings page. The previous 63-case GeoNames live test is retained for the unchanged legacy lookup, not presented as Photon coverage.
+
+### Version 1.6.3: concise settings
+
+Time settings appear first. Shorter labels and hints keep the stock Clay form compact; detailed attribution and privacy information are linked from the footer. Empty place-search status rows are hidden. All options, defaults and saved values are preserved.

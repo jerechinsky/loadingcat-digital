@@ -434,7 +434,7 @@
         "messageKey": "WEATHER_CITY",
         "label": "City",
         "defaultValue": "",
-        "description": "Enter city, two-letter country code. For example: Prague, CZ. CZ means Czechia; GB means United Kingdom; US means United States. If the city is not found, temperature shows --°.",
+        "description": "City, country code: Prague, CZ or NYC, US. USA and UK work too. Local names are supported, such as Praha, Київ, 北京 and 東京. If not found, try the full city name or its English spelling; temperature shows --° until found.",
         "attributes": {
           "placeholder": "Prague, CZ",
           "maxlength": 80,

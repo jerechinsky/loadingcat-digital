@@ -108,9 +108,13 @@ function refreshWeather() {
         forecast(saved.lat,saved.lon);return;
       }
     } catch(e) { /* Resolve again if the saved city is unavailable. */ }
+    var queries=location.searches(city),queryIndex=0;
+    function searchCity() {
+    if(!current())return;
+    var query=queries[queryIndex++];
     var search=new XMLHttpRequest();activeXhr=search;
-    search.open('GET','https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(city.city)+
-      '&countryCode='+city.country+'&count=5&language=en&format=json',true);
+    search.open('GET','https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(query.name)+
+      '&countryCode='+city.country+'&count=5&language='+query.language+'&format=json',true);
     search.timeout=15000;
     search.onload=function () {
       if(!current())return;
@@ -122,13 +126,15 @@ function refreshWeather() {
             typeof r.latitude==='number' && typeof r.longitude==='number' &&
             isFinite(r.latitude) && isFinite(r.longitude) && Math.abs(r.latitude)<=90 && Math.abs(r.longitude)<=180;
         })[0];
-        if(!found){done();return;}
+        if(!found){if(queryIndex<queries.length)searchCity();else done();return;}
         var lat=Number(found.latitude.toFixed(2)),lon=Number(found.longitude.toFixed(2));
         try {localStorage.setItem(CITY_CACHE_KEY,JSON.stringify({scope:scope,lat:lat,lon:lon,time:Date.now()}));}catch(e){}
         forecast(lat,lon);
       }catch(e){done();}
     };
     search.onerror=done;search.ontimeout=done;search.onabort=done;search.send();
+    }
+    searchCity();
   } else {
     navigator.geolocation.getCurrentPosition(function (position) {
       forecast(position.coords.latitude,position.coords.longitude);

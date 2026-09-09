@@ -15,7 +15,7 @@ A digital variant of ["loading cat" by zbw / zbzbw](https://github.com/zbzbw/loa
 - **disconnect alert:** optional white cat on a black background and four vibration patterns when the phone disconnects. Pebble filters brief drops for about 25 seconds. reconnecting restores normal colors. includes an Ignore Quiet Time switch for vibration.
 - **monochrome:** dithered spinner shading and an optional gray nose.
 
-Works on Pebble, Steel, Time, Time Steel, Time Round, Pebble 2, Time 2, 2 Duo and Round 2. Settings work offline and keep your preferences. For a fixed location, choose **Custom city** and enter **Prague, CZ** (city, two-letter country code). Custom mode does not request your phone location. Weather needs internet; stale readings disappear after two hours.
+Works on Pebble, Steel, Time, Time Steel, Time Round, Pebble 2, Time 2, 2 Duo and Round 2. Settings work offline and keep your preferences. For a fixed location, choose **Custom city** and enter **Prague, CZ** (city, two-letter country code). Names such as `Praha, CZ`, `Київ, UA`, `北京, CN` and `東京, JP` work too; `NYC, USA` is accepted. If a name is not found, try its full name or English spelling. Custom mode does not request your phone location. Weather needs internet; stale readings disappear after two hours.
 
 The clock ticks once a minute; the seconds spinner only wakes at each spoke. Animations pause when the face is covered, and disabled triggers unsubscribe. [battery audit](docs/battery-audit.md)
 

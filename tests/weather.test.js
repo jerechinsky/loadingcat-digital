@@ -27,7 +27,7 @@ function phone(options = {}) {
       this.send = () => {
         if(this.url.includes('geocoding-api')) {
           geocodes++;this.status=options.geoStatus || 200;
-          this.responseText=options.geoRaw===undefined ? JSON.stringify({results:options.noCity?[]:[options.geoResult || {name:'Prague',feature_code:'PPLC',country_code:'CZ',latitude:50.08804,longitude:14.42076}]}) : options.geoRaw;
+          this.responseText=options.geoRaw===undefined ? JSON.stringify({results:options.geoResults?options.geoResults(geocodes,this.url):options.noCity?[]:[options.geoResult || {name:'Prague',feature_code:'PPLC',country_code:'CZ',latitude:50.08804,longitude:14.42076}]}) : options.geoRaw;
           pendingGeoXhr=this;if(!options.deferGeoHttp)this.onload();return;
         }
         requests++;
@@ -204,7 +204,7 @@ for(const extra of [{noCity:true},{geoStatus:503},{geoRaw:'bad'},
  p=phone({...extra,settings:{WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ'},cache:JSON.stringify({temperature:220,time:now/1000-60})});refresh(p);
  assert.equal(p.positions,0);assert.equal(p.requests,0);assert.equal(p.messages.length,0,'No old phone-city weather or fallback GPS after a failed city lookup');
 }
-for(const city of ['', 'Prague', 'Prague, Czechia', 'Prague, CZE']){
+for(const city of ['', 'Prague', 'Prague, Czechia', 'Prague, ZZQ']){
  p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:city}});refresh(p);assert.equal(p.positions,0);assert.equal(p.geocodes,0);assert.equal(p.messages.length,0);
 }
 p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ',SHOW_WEATHER:0}});refresh(p);assert.equal(p.positions+p.geocodes,0);
@@ -214,3 +214,24 @@ p=phone({defer:true});refresh(p);p.events.webviewclosed({response:JSON.stringify
 p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ'},deferHttp:true});refresh(p);p.events.webviewclosed({response:JSON.stringify({WEATHER_CITY:'London, GB'})});p.resolveHttp();assert(!p.messages.some(m=>m.TEMPERATURE!==undefined));
 assert.equal(location.normalize('  Praha,  cz  '),'Praha, CZ');assert.deepEqual(location.parse('Český Krumlov, cz'),{city:'Český Krumlov',country:'CZ'});
 console.log('Custom location passed: parsing, country filtering, city cache, no GPS, stale-cache isolation, source switches and late callback cancellation.');
+
+// Localized queries preserve the input script and normalize common country aliases.
+for(const [city,country,language] of [['san francisco, us','US','en'],['nyc, usa','US','en'],['Praha, CZE','CZ','en'],['Київ, UA','UA','uk'],['Львів, UKR','UA','uk'],['北京，CN','CN','zh'],['上海, CHN','CN','zh'],['東京都, JP','JP','ja'],['大阪市, JPN','JP','ja']]) {
+ p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:city},geoResult:{country_code:country,feature_code:'PPL',latitude:35,longitude:140}});refresh(p);
+ assert.equal(p.positions,0);assert.equal(p.requests,1);assert.equal(p.geocodes,1);
+ assert.equal(new URL(p.urls[0]).searchParams.get('language'),language);
+ assert.equal(new URL(p.urls[0]).searchParams.get('countryCode'),country);
+ assert.equal(new URL(p.urls[0]).searchParams.get('name'),location.parse(city).city);
+}
+assert.equal(location.normalize('nyc, usa'),'nyc, US');assert.equal(location.normalize('London, UK'),'London, GB');
+assert.equal(location.normalize('東京，ＪＰ'),'東京, JP');
+assert.equal(location.scope({WEATHER_SOURCE:1,WEATHER_CITY:'nyc, usa'}),location.scope({WEATHER_SOURCE:1,WEATHER_CITY:'nyc, US'}));
+for(const [short,full] of [['東京','東京都'],['大阪','大阪市'],['京都','京都市']]) {
+ p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:short+', JP'},geoResults:n=>n===1?[]:[{country_code:'JP',feature_code:'PPLC',latitude:35,longitude:139}]});refresh(p);
+ assert.equal(p.positions,0);assert.equal(p.requests,1);assert.equal(p.geocodes,2);
+ assert.equal(new URL(p.urls[1]).searchParams.get('name'),full);
+}
+p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'東京, JP'},noCity:true});refresh(p);assert.equal(p.geocodes,2);assert.equal(p.requests,0);assert.equal(p.context.inFlight,false);refresh(p);assert.equal(p.geocodes,2,'Fallback is bounded and retry throttling still applies');
+p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'東京, JP'},geoStatus:503});refresh(p);assert.equal(p.geocodes,1,'Do not retry alternate spellings after server errors');
+p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'東京, JP'},deferGeoHttp:true,noCity:true});refresh(p);p.events.webviewclosed({response:JSON.stringify({SHOW_WEATHER:0})});p.resolveGeoHttp();assert.equal(p.geocodes,1);assert.equal(p.positions,0,'Disabling weather cancels pending spelling fallbacks');
+console.log('Language checks passed: country aliases, Unicode input, localized searches, bounded Japanese-name fallback, no GPS and cancellation.');

@@ -164,3 +164,9 @@ The stock form now has 24 settings. Weather location defaults to Phone location;
 Temperature caches belong to a location. The watch receives a numeric location identity with settings and each weather response, clears its reading when that identity changes, and ignores stale responses from a different source. Legacy caches and responses without an identity are valid only in phone mode. Changing source cancels pending HTTP work and invalidates late callbacks; turning weather off stops both lookup and forecast requests.
 
 `tests/weather.test.js` checks normalization, city lookup and cached coordinates, failures, location switches during GPS/lookup/forecast, hidden preferences and phone-only text storage. `tests/power_lifecycle.py` checks native cache invalidation and matching responses. `tools/capture_emulator.py --location-check --direct` exercises both directions of location switching in a headless native emulator. These checks do not verify real-phone permission prompts or physical-watch delivery.
+
+## 1.5.8: local city names
+
+Country aliases USA/UK/GBR/CZE/UKR/CHN/JPN normalize to two-letter codes. Full-width ASCII and Japanese commas normalize too, while city scripts and diacritics are preserved. The companion selects a matching lookup language for non-Latin scripts. Two-character Japanese names first search as written, then try the municipal suffix (市, or 都 for 東京) if no populated-place match is found. This fallback is bounded to one extra lookup, only on an empty result. HTTP errors do not trigger it. Existing cache, cancellation, weather-off and retry limits still apply.
+
+The city database does not contain every nickname or spelling. The settings hint recommends a full city name or English spelling when no match is found.

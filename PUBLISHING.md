@@ -26,7 +26,7 @@ For the current Pebble store, start at the [Pebble developer dashboard](https://
 
 1. Sign in with the account that should own the digital adaptation.
 2. Select the existing **Loading Cat Digital** listing and use **New Release** for updates. Do not create a duplicate listing.
-3. Upload `loading-cat-digital.pbw`, version **1.5.7**. It contains aplite, basalt, chalk, diorite, emery, flint and gabbro builds. Keep its existing UUID for subsequent updates.
+3. Upload `loading-cat-digital.pbw`, version **1.5.8**. It contains aplite, basalt, chalk, diorite, emery, flint and gabbro builds. Keep its existing UUID for subsequent updates.
 4. Use the supplied `store-description.txt` and `release-notes.txt`. Retain the original author's credit and link. The digital adaptation's publisher is yerex; do not impersonate the original author as the owner of this listing.
 5. Add the PNG from each matching platform folder under `screenshots/`. These are native emulator screenshots with sample time and weather. Use them in platform screenshot fields, not a scaled comparison sheet.
 6. Keep `https://github.com/jerechinsky/loadingcat-digital` as the source URL; leave the optional website field empty. Keep the upstream link in the credit.
@@ -51,3 +51,5 @@ A real-phone check of settings delivery and location permission, a real wrist/ba
 The weather API is Open-Meteo. This release uses its public endpoint without a key and includes attribution. Review its current [terms](https://open-meteo.com/en/terms) before commercial distribution or a change in usage scale.
 
 Version 1.5.7 adds **Weather location** (Phone location or Custom city) and a conditional **City** field with the example `Prague, CZ`. Phone location remains the default. Custom mode avoids GPS and caches city coordinates on the phone. Location changes clear the watch reading, and responses from a previous location are ignored. See `verification.json` for the fresh builds, settings, weather and native location-switch checks.
+
+Version 1.5.8 accepts common country aliases (including USA and UK), selects the lookup language for non-Latin city names and tries the municipal suffix for short Japanese names. Live checks cover San Francisco, NYC, Praha, Kyiv and Lviv in Ukrainian, Beijing and Shanghai in Chinese, and Tokyo, Osaka and Kyoto in Japanese. This does not guarantee every alternate name in the external city database.

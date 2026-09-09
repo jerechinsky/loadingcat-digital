@@ -19,6 +19,7 @@ The original repository has no license file or general redistribution permission
 
 - **Pebble Clay 1.0.4**, Pebble Technology. Vendored unchanged under MIT: `src/pkjs/vendor/CLAY-LICENSE.txt`.
 - Weather data: [Open-Meteo](https://open-meteo.com/), [CC BY 4.0](https://open-meteo.com/en/license).
+- City lookup: [Open-Meteo Geocoding API](https://open-meteo.com/en/docs/geocoding-api), using [GeoNames](https://www.geonames.org/) data under CC BY 4.0.
 
 ## Original numeral designs
 

@@ -16,6 +16,7 @@
 #define WEATHER_MAX_AGE (2 * 60 * 60)
 #define WEATHER_CACHE_KEY 20
 #define WEATHER_TIME_KEY 21
+#define WEATHER_LOCATION_CACHE_KEY 22
 #define WEATHER_RETRY_SECONDS (5 * 60)
 
 static Window *s_window;
@@ -372,15 +373,20 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
   (void)context;
   int previous_font = s_settings.numeral_font;
   int previous_weather = s_settings.show_weather;
+  int previous_location = s_settings.weather_location;
   int previous_interval = s_settings.weather_interval;
   bool changed = false;
   if (settings_receive(&s_settings,iter)) {
     changed=true;
+    if(previous_location!=s_settings.weather_location) {
+      s_has_weather=false;s_weather_time=0;
+      persist_delete(WEATHER_CACHE_KEY);persist_delete(WEATHER_TIME_KEY);persist_delete(WEATHER_LOCATION_CACHE_KEY);
+    }
     sync_triggers();
     if (s_canvas && previous_font != s_settings.numeral_font) load_numeral_fonts();
     stop_spin(); s_phase = 0;
     sync_seconds();
-    if(s_settings.show_weather && (!previous_weather || previous_interval!=s_settings.weather_interval)) {
+    if(s_settings.show_weather && (!previous_weather || previous_interval!=s_settings.weather_interval || previous_location!=s_settings.weather_location)) {
       s_last_weather_request = 0;
       request_weather();
     }
@@ -392,7 +398,10 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
   }
   Tuple *temp = dict_find(iter, MESSAGE_KEY_TEMPERATURE);
   Tuple *stamp = dict_find(iter, MESSAGE_KEY_WEATHER_TIME);
-  if (temp && stamp && temp->length == 4 && stamp->length == 4 &&
+  Tuple *location=dict_find(iter,MESSAGE_KEY_WEATHER_RESPONSE_LOCATION);
+  bool matches_location=location ? (location->length==4 && (location->type==TUPLE_INT || location->type==TUPLE_UINT) &&
+      location->value->int32==s_settings.weather_location) : s_settings.weather_location==0;
+  if (matches_location && temp && stamp && temp->length == 4 && stamp->length == 4 &&
       (temp->type == TUPLE_INT || temp->type == TUPLE_UINT) &&
       (stamp->type == TUPLE_INT || stamp->type == TUPLE_UINT)) {
     int32_t value = temp->value->int32;
@@ -403,6 +412,7 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
         changed=true;
         if(!s_has_weather || s_temperature!=value)persist_write_int(WEATHER_CACHE_KEY,value);
         if(!s_has_weather || s_weather_time!=fetched)persist_write_int(WEATHER_TIME_KEY,fetched);
+        if(!s_has_weather)persist_write_int(WEATHER_LOCATION_CACHE_KEY,s_settings.weather_location);
         s_temperature=value;s_weather_time=fetched;s_has_weather=true;
       }
     }
@@ -439,7 +449,8 @@ static void init(void) {
   s_phone_connected = connection_service_peek_pebble_app_connection();
   s_disconnect_visible = !s_phone_connected;
   connection_service_subscribe((ConnectionHandlers){.pebble_app_connection_handler = connection_handler});
-  s_has_weather = persist_exists(WEATHER_CACHE_KEY) && persist_exists(WEATHER_TIME_KEY);
+  s_has_weather = persist_exists(WEATHER_CACHE_KEY) && persist_exists(WEATHER_TIME_KEY) &&
+      (persist_exists(WEATHER_LOCATION_CACHE_KEY) ? persist_read_int(WEATHER_LOCATION_CACHE_KEY)==s_settings.weather_location : s_settings.weather_location==0);
   if (s_has_weather) {
     s_temperature = persist_read_int(WEATHER_CACHE_KEY);
     s_weather_time = persist_read_int(WEATHER_TIME_KEY);

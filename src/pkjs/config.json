@@ -415,6 +415,35 @@
       },
       {
         "type": "select",
+        "messageKey": "WEATHER_SOURCE",
+        "label": "Weather location",
+        "defaultValue": "0",
+        "options": [
+          {
+            "label": "Phone location",
+            "value": "0"
+          },
+          {
+            "label": "Custom city",
+            "value": "1"
+          }
+        ]
+      },
+      {
+        "type": "input",
+        "messageKey": "WEATHER_CITY",
+        "label": "City",
+        "defaultValue": "",
+        "description": "Enter city, two-letter country code. For example: Prague, CZ. CZ means Czechia; GB means United Kingdom; US means United States. If the city is not found, temperature shows --°.",
+        "attributes": {
+          "placeholder": "Prague, CZ",
+          "maxlength": 80,
+          "type": "text",
+          "autocorrect": "off"
+        }
+      },
+      {
+        "type": "select",
         "messageKey": "FAHRENHEIT",
         "label": "Units",
         "defaultValue": "0",
@@ -451,7 +480,7 @@
       },
       {
         "type": "text",
-        "defaultValue": "Uses your phone location. Turning temperature off also stops location and weather requests. A reading older than two hours is shown as --\u00b0. Your location is rounded before it is sent to Open-Meteo."
+        "defaultValue": "Phone location follows you; a custom city stays fixed and does not request your phone location. Turning temperature off stops location and weather requests. Readings older than two hours show --°."
       }
     ]
   },
@@ -517,6 +546,6 @@
   },
   {
     "type": "text",
-    "defaultValue": "Original Loading Cat by <a href=\"https://github.com/zbzbw/loadingcat-pebble\">zbw / zbzbw</a>. Digital adaptation by yerex. Teko and Bebas Neue: SIL Open Font License. Square numerals: original geometry for this project. Weather by <a href=\"https://open-meteo.com/\">Open-Meteo</a> (CC BY 4.0)."
+    "defaultValue": "Original Loading Cat by <a href=\"https://github.com/zbzbw/loadingcat-pebble\">zbw / zbzbw</a>. Digital adaptation by yerex. Teko and Bebas Neue: SIL Open Font License. Square numerals: original geometry for this project. Weather by <a href=\"https://open-meteo.com/\">Open-Meteo</a> (CC BY 4.0). City lookup uses GeoNames."
   }
 ]

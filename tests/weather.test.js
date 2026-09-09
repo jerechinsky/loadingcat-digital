@@ -5,8 +5,10 @@ const code = fs.readFileSync(__dirname + '/../src/pkjs/index.js', 'utf8');
 const now = 1788864000000;
 function phone(options = {}) {
   const messages = [], urls = [], events = {}, timers = [];
+  let geocodes=0,pendingGeoXhr;
   let requests = 0, positions = 0, saved = options.cache || null, geoSuccess, geoFailure, pendingXhr, aborted=0;
   const settingsStore = options.settings ? {'loading-cat-settings-v1':JSON.stringify(options.settings)} : {};
+  if(options.cityCache)settingsStore['loading-cat-city-v1']=options.cityCache;
   const context = {
     Date: {now: () => now}, Math, JSON, isFinite,
     localStorage: {getItem: key => key === 'loading-cat-weather-v1' ? saved : settingsStore[key], setItem: (key, value) => {if (key === 'loading-cat-weather-v1') saved=value; else settingsStore[key]=value;}},
@@ -20,9 +22,14 @@ function phone(options = {}) {
       else success({coords: options.coords || {latitude: 50.0875, longitude: 14.4213}});
     }}},
     XMLHttpRequest: function () {
-      this.open = (_, url) => urls.push(url);
+      this.open = (_, url) => {this.url=url;urls.push(url);};
       this.abort = () => {aborted++;this.onabort();};
       this.send = () => {
+        if(this.url.includes('geocoding-api')) {
+          geocodes++;this.status=options.geoStatus || 200;
+          this.responseText=options.geoRaw===undefined ? JSON.stringify({results:options.noCity?[]:[options.geoResult || {name:'Prague',feature_code:'PPLC',country_code:'CZ',latitude:50.08804,longitude:14.42076}]}) : options.geoRaw;
+          pendingGeoXhr=this;if(!options.deferGeoHttp)this.onload();return;
+        }
         requests++;
         if (options.timeout) {this.ontimeout(); return;}
         this.status = options.status || 200;
@@ -35,10 +42,11 @@ function phone(options = {}) {
     }
   };
   vm.createContext(context);
-  const settingsContext = vm.createContext({...context, exports: {}, require: () => JSON.parse(fs.readFileSync(__dirname+'/../src/pkjs/config.json','utf8'))});
+  const settingsContext = vm.createContext({...context, exports: {}, require: name => name==='./location' ? require('../src/pkjs/location') : JSON.parse(fs.readFileSync(__dirname+'/../src/pkjs/config.json','utf8'))});
   vm.runInContext(fs.readFileSync(__dirname+'/../src/pkjs/settings.js','utf8'), settingsContext);
   context.require = name => {
     if (name === './settings') return settingsContext.exports;
+    if (name === './location') return require('../src/pkjs/location');
     if (name === './config.json') return [];
     if (name === './settings-page') return function () {};
     if (name === './vendor/clay') return function () {
@@ -51,7 +59,7 @@ function phone(options = {}) {
   vm.runInContext(code, context);
   return {context, messages, urls, events, get saved() {return saved;},
     get savedSettings() {return JSON.parse(settingsStore['loading-cat-settings-v1'] || '{}');}, get requests() {return requests;},
-    get positions() {return positions;}, resolve: () => geoSuccess({coords: {latitude: 0, longitude: 0}}),
+    get positions() {return positions;}, get geocodes(){return geocodes;}, get cityCache(){return settingsStore['loading-cat-city-v1'];}, resolveGeoHttp:()=>pendingGeoXhr.onload(), resolve: () => geoSuccess({coords: {latitude: 0, longitude: 0}}),
     reject: () => geoFailure(), timeout: () => timers[0](), resolveHttp: () => pendingXhr.onload(), get aborted(){return aborted;}};
 }
 function refresh(p) {p.events.appmessage({payload: {REQUEST_WEATHER: 1}});}
@@ -105,12 +113,13 @@ p=phone({defer:true});refresh(p);p.timeout();p.resolve();assert.equal(p.requests
 // Exercise every declared setting choice through the real normalization/save path.
 const config=JSON.parse(fs.readFileSync(__dirname+'/../src/pkjs/config.json','utf8'));
 const publicSettings=config.flatMap(section=>section.items||[]).filter(spec=>spec.messageKey);
-assert.equal(publicSettings.length,22,'The public menu only exposes supported presentation choices');
+assert.equal(publicSettings.length,24,'The public menu only exposes supported presentation choices');
 assert.deepEqual(publicSettings.find(spec=>spec.messageKey==='SPOKES').options.map(option=>Number(option.value)),[6,7,8,10,12]);
 for(const section of config)for(const spec of section.items||[])if(spec.messageKey){
- for(const value of spec.type==='toggle'?[0,1]:spec.options.map(o=>Number(o.value))){
+ for(const value of spec.type==='input'?['','Prague, CZ','New York, US']:spec.type==='toggle'?[0,1]:spec.options.map(o=>Number(o.value))){
   p=phone();p.events.webviewclosed({response:JSON.stringify({[spec.messageKey]:{value}})});
-  assert.equal(p.messages.find(m=>m[spec.messageKey]!==undefined)[spec.messageKey],value,spec.messageKey);
+  if(['WEATHER_SOURCE','WEATHER_CITY'].includes(spec.messageKey)){assert.equal(p.savedSettings[spec.messageKey],value);assert.equal(p.messages[0][spec.messageKey],undefined);}
+  else assert.equal(p.messages.find(m=>m[spec.messageKey]!==undefined)[spec.messageKey],value,spec.messageKey);
  }
 }
 console.log('All setting choices and late weather cancellation callbacks passed.');
@@ -129,7 +138,7 @@ for(const spokes of [0,11]){
  assert.equal(p.savedSettings.SPOKES,8);
  for(const key of Object.keys(retiredSettings))assert.equal(p.savedSettings[key],undefined,key+' must not remain in saved settings');
  for(const [key,value] of Object.entries(preservedSettings))assert.equal(p.savedSettings[key],value,key+' must survive saving');
- assert.equal(Object.keys(p.savedSettings).length,22);
+ assert.equal(Object.keys(p.savedSettings).length,24);
 }
 // Existing installs receive the new monochrome treatment until explicitly disabled.
 p=phone({settings:{NUMERAL_FONT:2,SHOW_WEATHER:0}});p.events.ready();assert.equal(p.messages[0].GRAY_NOSE,1);
@@ -177,3 +186,31 @@ p.events.webviewclosed({response:JSON.stringify({NUMERAL_FONT:7})});refresh(p);a
 p=phone({settings:{DISCONNECT_DELAY:60}});p.events.ready();assert.equal(p.messages[0].DISCONNECT_DELAY,undefined);
 p.events.webviewclosed({response:JSON.stringify({DISCONNECT_INVERT:1})});assert.equal(p.savedSettings.DISCONNECT_DELAY,undefined);
 console.log('Battery checks passed: single weather scheduler, cached reply deduplication, unrelated settings preserve backoff, retired delay ignored.');
+
+// Custom cities never ask for the phone location; country filtering is explicit.
+const location=require('../src/pkjs/location');
+p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'  Prague , cz '}});p.events.ready();refresh(p);
+assert.equal(p.positions,0);assert.equal(p.geocodes,1);assert.equal(p.requests,1);
+assert.match(p.urls[0],/name=Prague&countryCode=CZ/);assert.match(p.urls[1],/latitude=50.09&longitude=14.42/);
+assert.equal(p.messages[0].WEATHER_CITY,undefined);assert.equal(p.messages[0].WEATHER_SOURCE,undefined);
+assert.equal(p.messages[0].WEATHER_LOCATION_ID,location.id('city:prague, cz'));
+assert.equal(p.messages.at(-1).WEATHER_RESPONSE_LOCATION,p.messages[0].WEATHER_LOCATION_ID);
+const savedCity=p.cityCache;
+p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ'},cityCache:savedCity});refresh(p);
+assert.equal(p.geocodes,0);assert.equal(p.positions,0);assert.equal(p.requests,1);
+for(const extra of [{noCity:true},{geoStatus:503},{geoRaw:'bad'},
+ {geoResult:{country_code:'US',feature_code:'PPLC',latitude:50,longitude:14}},
+ {geoResult:{country_code:'CZ',feature_code:'PPLC',latitude:200,longitude:14}}]){
+ p=phone({...extra,settings:{WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ'},cache:JSON.stringify({temperature:220,time:now/1000-60})});refresh(p);
+ assert.equal(p.positions,0);assert.equal(p.requests,0);assert.equal(p.messages.length,0,'No old phone-city weather or fallback GPS after a failed city lookup');
+}
+for(const city of ['', 'Prague', 'Prague, Czechia', 'Prague, CZE']){
+ p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:city}});refresh(p);assert.equal(p.positions,0);assert.equal(p.geocodes,0);assert.equal(p.messages.length,0);
+}
+p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ',SHOW_WEATHER:0}});refresh(p);assert.equal(p.positions+p.geocodes,0);
+p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ'},deferGeoHttp:true});refresh(p);
+p.events.webviewclosed({response:JSON.stringify({WEATHER_SOURCE:0})});p.resolveGeoHttp();assert.equal(p.requests,0);assert.equal(p.aborted,1);refresh(p);assert.equal(p.positions,1);
+p=phone({defer:true});refresh(p);p.events.webviewclosed({response:JSON.stringify({WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ'})});p.resolve();assert.equal(p.requests,0);refresh(p);assert.equal(p.geocodes,1);
+p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ'},deferHttp:true});refresh(p);p.events.webviewclosed({response:JSON.stringify({WEATHER_CITY:'London, GB'})});p.resolveHttp();assert(!p.messages.some(m=>m.TEMPERATURE!==undefined));
+assert.equal(location.normalize('  Praha,  cz  '),'Praha, CZ');assert.deepEqual(location.parse('Český Krumlov, cz'),{city:'Český Krumlov',country:'CZ'});
+console.log('Custom location passed: parsing, country filtering, city cache, no GPS, stale-cache isolation, source switches and late callback cancellation.');

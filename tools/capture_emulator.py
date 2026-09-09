@@ -31,6 +31,7 @@ p.add_argument('--inversion-check', action='store_true', help='Check disconnecte
 p.add_argument('--compare-appearance', type=Path, help='Compare native connected/disconnected pixels with a prior capture')
 p.add_argument('--connection-check', action='store_true', help='Check native disconnect vibration patterns; requires --direct')
 p.add_argument('--spokes-check', action='store_true', help='Check 12-spoke layout and live seconds handoffs')
+p.add_argument('--location-check', action='store_true', help='Check weather invalidation and responses after a location change')
 args = p.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 root = Path(__file__).resolve().parents[1]
@@ -114,6 +115,36 @@ def frame():
         mask = Image.new('L',pic.size); ImageDraw.Draw(mask).ellipse((0,0,pic.width-1,pic.height-1),fill=255)
         pic.putalpha(mask)
     return pic
+
+if args.location_check:
+    assert args.direct
+    stamp=int(fixed.timestamp())
+    message(ANIMATE=0,SECOND_HAND=0,SHOW_SPINNER=1,SHOW_WEATHER=1,NUMERAL_FONT=2,
+            DISCONNECT_VIBE=0,DISCONNECT_INVERT=0,TIME_FORMAT=2,LEADING_ZERO=1,
+            WEATHER_LOCATION_ID=0,TEMPERATURE=220,WEATHER_TIME=stamp,WEATHER_RESPONSE_LOCATION=0)
+    phone=frame();phone.save(args.output/f'{args.platform}-phone-weather.png')
+    message(WEATHER_LOCATION_ID=12345)
+    empty=frame();empty.save(args.output/f'{args.platform}-location-pending.png')
+    def same(a,b):
+        return ImageChops.difference(a.convert('RGB'),b.convert('RGB')).getbbox() is None
+    assert not same(phone,empty),'Previous location stayed visible'
+    message(TEMPERATURE=310,WEATHER_TIME=stamp,WEATHER_RESPONSE_LOCATION=0)
+    assert same(frame(),empty),'Late phone response replaced custom city'
+    message(TEMPERATURE=130,WEATHER_TIME=stamp,WEATHER_RESPONSE_LOCATION=12345)
+    custom=frame();custom.save(args.output/f'{args.platform}-custom-weather.png')
+    assert not same(custom,empty) and not same(custom,phone),'Matching city response not displayed'
+    message(WEATHER_LOCATION_ID=0)
+    assert same(frame(),empty),'Custom city stayed visible after switching back to phone'
+    message(TEMPERATURE=130,WEATHER_TIME=stamp,WEATHER_RESPONSE_LOCATION=12345)
+    assert same(frame(),empty),'Late city response replaced phone location'
+    message(TEMPERATURE=220,WEATHER_TIME=stamp,WEATHER_RESPONSE_LOCATION=0)
+    assert same(frame(),phone),'Phone weather did not restore'
+    message(ANIMATE=1,SECOND_HAND=1)
+    result={'version':meta['versionLabel'],'platform':args.platform,'location_change_clears_reading':True,
+            'late_responses_ignored_both_directions':True,'matching_city_response_displayed':True,
+            'phone_weather_restored':True}
+    (args.output/f'{args.platform}-location-verification.json').write_text(json.dumps(result,indent=2)+'\n')
+    print(json.dumps(result),flush=True);cleanup();raise SystemExit(0)
 
 if args.inversion_check:
     from libpebble2.communication.transports.qemu import MessageTargetQemu

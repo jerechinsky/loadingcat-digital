@@ -22,11 +22,12 @@ module.exports = function () {
       visible(clay.getItemById('backlight-note'), interaction && backlight);
       visible(clay.getItemById('seconds-note'), spinner && enabled('SECOND_HAND'));
       visible(items.GRAY_NOSE, monochrome);
-      ['FAHRENHEIT', 'WEATHER_INTERVAL'].forEach(function (key) { visible(items[key], enabled('SHOW_WEATHER')); });
+      ['FAHRENHEIT', 'WEATHER_INTERVAL', 'WEATHER_SOURCE'].forEach(function (key) { visible(items[key], enabled('SHOW_WEATHER')); });
+      visible(items.WEATHER_CITY, enabled('SHOW_WEATHER') && enabled('WEATHER_SOURCE'));
     }
     items.GRAY_NOSE[monochrome ? 'enable' : 'disable']();
     items.LIGHT_TRIGGER[backlight ? 'enable' : 'disable']();
-    ['SHOW_SPINNER', 'SECOND_HAND', 'ANIMATE', 'SHOW_WEATHER', 'NIGHT_PAUSE', 'DISCONNECT_VIBE', 'DISCONNECT_INVERT'].forEach(function (key) { items[key].on('change', update); });
+    ['SHOW_SPINNER', 'SECOND_HAND', 'ANIMATE', 'SHOW_WEATHER', 'WEATHER_SOURCE', 'NIGHT_PAUSE', 'DISCONNECT_VIBE', 'DISCONNECT_INVERT'].forEach(function (key) { items[key].on('change', update); });
     update();
   });
 };

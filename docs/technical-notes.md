@@ -176,3 +176,17 @@ The city database does not contain every nickname or spelling. The settings hint
 The settings form now has 26 options. Reconnect vibration is independently enabled and uses its own pattern selection; its defaults are off and Short tap. Disconnect defaults and saved choices are preserved. Both alerts use the existing connection callback, suppress duplicate state reports and honor the shared Quiet Time preference. No polling or timer was added. Reconnect still restores normal colors regardless of vibration settings.
 
 The custom city hint now explicitly introduces its sample locations with "For example".
+
+## 1.6.0: place search and broader name coverage
+
+The stock Clay form keeps 26 visible preferences and adds a Find place button and a result list. A hidden, phone-only WEATHER_PLACE field stores the confirmed GeoNames ID, labels, input and rounded coordinates. It is never sent to the watch. Selected places bypass further geocoding. Changes to the entered name invalidate the selection; switching places changes the weather-cache identity and rejects late replies from the previous location.
+
+The same ES5 location module runs in the companion and settings page. Searches use the input script, the country's local language, the phone language and English, with at most four requests. Japanese, Korean and Taiwanese city suffixes and German umlaut transliterations receive bounded handling. Names and country codes retain the earlier normalization; an optional middle region qualifier is passed to the API. Result labels include the city, district where available, region and country. Explicit selection accepts the chosen populated place; unattended lookups reject prefix-only and ambiguous exact results. Existing city cache identities change once to discard potentially incorrect old matches.
+
+Place search happens only after Find place is pressed. Hiding weather or custom mode, changing the name, leaving the page and a 30-second deadline all cancel pending searches. HTTP failures show a short error and never trigger GPS. Watch scheduling, connection handling, artwork and animation are unchanged.
+
+The live suite in `tests/location-live.test.js` covers 63 public inputs, including village names, diacritics, multiple scripts, abbreviations and regional qualifiers. It checks known GeoNames IDs and verifies safe no-result cases too. It is opt-in because it contacts Open-Meteo. The database still lacks some native names, including the Tamil spelling of Chennai in this run; English Chennai works. This is not a claim that every name or language is covered.
+
+`tests/place-picker.test.js` checks the actual shipped settings bundle with controlled responses: explicit search, same-name towns, region/country labels, selection and save/reopen, cancellation, hidden controls and network/response errors. The existing weather and settings tests also cover the added saved-place data. No analytics were added.
+
+The backlight hint now explicitly says Back button. Pebble exposes an on/off backlight event with no activation reason. A wrist flick that turns the light on can still trigger the backlight option when the separate flick option is disabled; both triggers must be off for seconds-only behavior. No unreliable motion-based guess was added.

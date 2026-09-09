@@ -1,0 +1,317 @@
+[
+  {
+    "input": "Dolní Věstonice, CZ",
+    "locale": "en",
+    "expectedId": 3076643
+  },
+  {
+    "input": "Lednice, CZ",
+    "locale": "en",
+    "expectedId": 3072232
+  },
+  {
+    "input": "Český Krumlov, CZ",
+    "locale": "en",
+    "expectedId": 3077889
+  },
+  {
+    "input": "Cesky Krumlov, CZ",
+    "locale": "en",
+    "expectedId": 3077889
+  },
+  {
+    "input": "Košice, SK",
+    "locale": "en",
+    "expectedId": 724443
+  },
+  {
+    "input": "Łódź, PL",
+    "locale": "en",
+    "expectedId": 3093133
+  },
+  {
+    "input": "Lodz, PL",
+    "locale": "en",
+    "expectedId": 3093133
+  },
+  {
+    "input": "München, DE",
+    "locale": "en",
+    "expectedId": 2867714
+  },
+  {
+    "input": "Muenchen, DE",
+    "locale": "en",
+    "expectedId": 2867714
+  },
+  {
+    "input": "Wien, AT",
+    "locale": "en",
+    "expectedId": 2761369
+  },
+  {
+    "input": "Varsovie, PL",
+    "locale": "fr-FR",
+    "expectedId": 756135
+  },
+  {
+    "input": "Firenze, IT",
+    "locale": "en",
+    "expectedId": 3176959
+  },
+  {
+    "input": "Zürich, CH",
+    "locale": "en",
+    "expectedId": 2657896
+  },
+  {
+    "input": "Genève, CH",
+    "locale": "en",
+    "expectedId": 2660646
+  },
+  {
+    "input": "São Paulo, BR",
+    "locale": "en",
+    "expectedId": 3448439
+  },
+  {
+    "input": "Sao Paulo, BR",
+    "locale": "en",
+    "expectedId": 3448439
+  },
+  {
+    "input": "İstanbul, TR",
+    "locale": "en",
+    "expectedId": 745044
+  },
+  {
+    "input": "Reykjavík, IS",
+    "locale": "en",
+    "expectedId": 3413829
+  },
+  {
+    "input": "Чернівці, UA",
+    "locale": "en",
+    "expectedId": 710719
+  },
+  {
+    "input": "Ужгород, UA",
+    "locale": "en",
+    "expectedId": 690548
+  },
+  {
+    "input": "Косів, UA",
+    "locale": "en",
+    "expectedId": 704764
+  },
+  {
+    "input": "Прага, CZ",
+    "locale": "en",
+    "expectedId": 3067696
+  },
+  {
+    "input": "Киев, UA",
+    "locale": "en",
+    "expectedId": 703448
+  },
+  {
+    "input": "Αθήνα, GR",
+    "locale": "en",
+    "expectedId": 264371
+  },
+  {
+    "input": "القاهرة, EG",
+    "locale": "en",
+    "expectedId": 360630
+  },
+  {
+    "input": "دبي, AE",
+    "locale": "en",
+    "expectedId": 292223
+  },
+  {
+    "input": "ירושלים, IL",
+    "locale": "en",
+    "expectedId": 281184
+  },
+  {
+    "input": "تهران, IR",
+    "locale": "en",
+    "expectedId": 112931
+  },
+  {
+    "input": "کراچی, PK",
+    "locale": "en",
+    "expectedId": 1174872
+  },
+  {
+    "input": "दिल्ली, IN",
+    "locale": "en",
+    "expectedId": 1273294
+  },
+  {
+    "input": "ঢাকা, BD",
+    "locale": "en",
+    "expectedId": 1185241
+  },
+  {
+    "input": "சென்னை, IN",
+    "locale": "en",
+    "expectedId": null
+  },
+  {
+    "input": "กรุงเทพมหานคร, TH",
+    "locale": "en",
+    "expectedId": 1609350
+  },
+  {
+    "input": "თბილისი, GE",
+    "locale": "en",
+    "expectedId": 611717
+  },
+  {
+    "input": "Երևան, AM",
+    "locale": "en",
+    "expectedId": 616052
+  },
+  {
+    "input": "서울, KR",
+    "locale": "en",
+    "expectedId": 1835848
+  },
+  {
+    "input": "부산, KR",
+    "locale": "en",
+    "expectedId": 1838524
+  },
+  {
+    "input": "台北, TW",
+    "locale": "en",
+    "expectedId": 1668341
+  },
+  {
+    "input": "臺北, TW",
+    "locale": "en",
+    "expectedId": 1668341
+  },
+  {
+    "input": "札幌, JP",
+    "locale": "en",
+    "expectedId": 2128295
+  },
+  {
+    "input": "札幌市, JP",
+    "locale": "en",
+    "expectedId": 2128295
+  },
+  {
+    "input": "奈良, JP",
+    "locale": "en",
+    "expectedId": 1855612
+  },
+  {
+    "input": "奈良市, JP",
+    "locale": "en",
+    "expectedId": 1855612
+  },
+  {
+    "input": "San José, CR",
+    "locale": "en",
+    "expectedId": 3621849
+  },
+  {
+    "input": "St. John's, CA",
+    "locale": "en",
+    "expectedId": 6324733
+  },
+  {
+    "input": "Prague, CZ",
+    "locale": "en",
+    "expectedId": 3067696
+  },
+  {
+    "input": "Praha, CZ",
+    "locale": "en",
+    "expectedId": 3067696
+  },
+  {
+    "input": "Київ, UA",
+    "locale": "en",
+    "expectedId": 703448
+  },
+  {
+    "input": "Львів, UA",
+    "locale": "en",
+    "expectedId": 702550
+  },
+  {
+    "input": "北京，ＣＮ",
+    "locale": "en",
+    "expectedId": 1816670
+  },
+  {
+    "input": "上海, CN",
+    "locale": "en",
+    "expectedId": 1796236
+  },
+  {
+    "input": "東京, JP",
+    "locale": "en",
+    "expectedId": 1850147
+  },
+  {
+    "input": "大阪, JP",
+    "locale": "en",
+    "expectedId": 1853909
+  },
+  {
+    "input": "京都, JP",
+    "locale": "en",
+    "expectedId": 1857910
+  },
+  {
+    "input": "  nyc , usa  ",
+    "locale": "en",
+    "expectedId": 5128581
+  },
+  {
+    "input": "san francisco, us",
+    "locale": "en",
+    "expectedId": 5391959
+  },
+  {
+    "input": "London, UK",
+    "locale": "en",
+    "expectedId": 2643743
+  },
+  {
+    "input": "Springfield, IL, US",
+    "locale": "en",
+    "expectedId": 4250542
+  },
+  {
+    "input": "Springfield, MA, US",
+    "locale": "en",
+    "expectedId": 4951788
+  },
+  {
+    "input": "Lednice, Plzeňský kraj, CZ",
+    "locale": "en",
+    "expectedId": 3072231
+  },
+  {
+    "input": "Lednice, Plzeň Region, CZ",
+    "locale": "en",
+    "expectedId": 3072231
+  },
+  {
+    "input": "Chennai, IN",
+    "locale": "en",
+    "expectedId": 1264527
+  },
+  {
+    "input": "Zzxxyyqq, CZ",
+    "locale": "en",
+    "expectedId": null
+  }
+]

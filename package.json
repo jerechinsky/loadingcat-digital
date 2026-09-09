@@ -1,7 +1,7 @@
 {
   "name": "loadingcat-digital",
   "author": "yerex (original by zbw / zbzbw)",
-  "version": "1.5.9",
+  "version": "1.6.0",
   "keywords": [
     "pebble-app"
   ],
@@ -310,7 +310,8 @@
       "WEATHER_LOCATION_ID",
       "WEATHER_RESPONSE_LOCATION",
       "RECONNECT_VIBE",
-      "RECONNECT_PATTERN"
+      "RECONNECT_PATTERN",
+      "WEATHER_PLACE"
     ]
   }
 }

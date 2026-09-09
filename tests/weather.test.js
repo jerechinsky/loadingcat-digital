@@ -15,7 +15,7 @@ function phone(options = {}) {
     setTimeout: fn => {timers.push(fn);return timers.length;}, clearTimeout: () => {},
     Pebble: {addEventListener: (name, fn) => events[name] = fn,
       sendAppMessage: (data, success) => {messages.push(data); if (success) success();}},
-    navigator: {geolocation: {getCurrentPosition: (success, failure) => {
+    navigator: {language:options.language || 'en',geolocation: {getCurrentPosition: (success, failure) => {
       positions++; geoSuccess = success; geoFailure = failure;
       if (options.defer) return;
       if (options.denied) failure();
@@ -27,7 +27,7 @@ function phone(options = {}) {
       this.send = () => {
         if(this.url.includes('geocoding-api')) {
           geocodes++;this.status=options.geoStatus || 200;
-          this.responseText=options.geoRaw===undefined ? JSON.stringify({results:options.geoResults?options.geoResults(geocodes,this.url):options.noCity?[]:[options.geoResult || {name:'Prague',feature_code:'PPLC',country_code:'CZ',latitude:50.08804,longitude:14.42076}]}) : options.geoRaw;
+          this.responseText=options.geoRaw===undefined ? JSON.stringify({results:(options.geoResults?options.geoResults(geocodes,this.url):options.noCity?[]:[options.geoResult || {name:'Prague',feature_code:'PPLC',country_code:'CZ',latitude:50.08804,longitude:14.42076}]).map((r,i)=>r && ({id:100+i,name:new URL(this.url).searchParams.get('name').split(',')[0],...r}))}) : options.geoRaw;
           pendingGeoXhr=this;if(!options.deferGeoHttp)this.onload();return;
         }
         requests++;
@@ -113,12 +113,12 @@ p=phone({defer:true});refresh(p);p.timeout();p.resolve();assert.equal(p.requests
 // Exercise every declared setting choice through the real normalization/save path.
 const config=JSON.parse(fs.readFileSync(__dirname+'/../src/pkjs/config.json','utf8'));
 const publicSettings=config.flatMap(section=>section.items||[]).filter(spec=>spec.messageKey);
-assert.equal(publicSettings.length,26,'The public menu only exposes supported presentation choices');
+assert.equal(publicSettings.length,27,'The public menu only exposes supported presentation choices');
 assert.deepEqual(publicSettings.find(spec=>spec.messageKey==='SPOKES').options.map(option=>Number(option.value)),[6,7,8,10,12]);
 for(const section of config)for(const spec of section.items||[])if(spec.messageKey){
- for(const value of spec.type==='input'?['','Prague, CZ','New York, US']:spec.type==='toggle'?[0,1]:spec.options.map(o=>Number(o.value))){
+ for(const value of spec.messageKey==='WEATHER_PLACE'?['']:spec.type==='input'?['','Prague, CZ','New York, US']:spec.type==='toggle'?[0,1]:spec.options.map(o=>Number(o.value))){
   p=phone();p.events.webviewclosed({response:JSON.stringify({[spec.messageKey]:{value}})});
-  if(['WEATHER_SOURCE','WEATHER_CITY'].includes(spec.messageKey)){assert.equal(p.savedSettings[spec.messageKey],value);assert.equal(p.messages[0][spec.messageKey],undefined);}
+  if(['WEATHER_SOURCE','WEATHER_CITY','WEATHER_PLACE'].includes(spec.messageKey)){assert.equal(p.savedSettings[spec.messageKey],value);assert.equal(p.messages[0][spec.messageKey],undefined);}
   else assert.equal(p.messages.find(m=>m[spec.messageKey]!==undefined)[spec.messageKey],value,spec.messageKey);
  }
 }
@@ -138,7 +138,7 @@ for(const spokes of [0,11]){
  assert.equal(p.savedSettings.SPOKES,8);
  for(const key of Object.keys(retiredSettings))assert.equal(p.savedSettings[key],undefined,key+' must not remain in saved settings');
  for(const [key,value] of Object.entries(preservedSettings))assert.equal(p.savedSettings[key],value,key+' must survive saving');
- assert.equal(Object.keys(p.savedSettings).length,26);
+ assert.equal(Object.keys(p.savedSettings).length,27);
 }
 // Existing installs receive the new monochrome treatment until explicitly disabled.
 p=phone({settings:{NUMERAL_FONT:2,SHOW_WEATHER:0}});p.events.ready();assert.equal(p.messages[0].GRAY_NOSE,1);
@@ -193,7 +193,7 @@ p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'  Prague , cz '}});p.events.re
 assert.equal(p.positions,0);assert.equal(p.geocodes,1);assert.equal(p.requests,1);
 assert.match(p.urls[0],/name=Prague&countryCode=CZ/);assert.match(p.urls[1],/latitude=50.09&longitude=14.42/);
 assert.equal(p.messages[0].WEATHER_CITY,undefined);assert.equal(p.messages[0].WEATHER_SOURCE,undefined);
-assert.equal(p.messages[0].WEATHER_LOCATION_ID,location.id('city:prague, cz'));
+assert.equal(p.messages[0].WEATHER_LOCATION_ID,location.id('city:v2:prague, cz'));
 assert.equal(p.messages.at(-1).WEATHER_RESPONSE_LOCATION,p.messages[0].WEATHER_LOCATION_ID);
 const savedCity=p.cityCache;
 p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ'},cityCache:savedCity});refresh(p);
@@ -216,12 +216,12 @@ assert.equal(location.normalize('  Praha,  cz  '),'Praha, CZ');assert.deepEqual(
 console.log('Custom location passed: parsing, country filtering, city cache, no GPS, stale-cache isolation, source switches and late callback cancellation.');
 
 // Localized queries preserve the input script and normalize common country aliases.
-for(const [city,country,language] of [['san francisco, us','US','en'],['nyc, usa','US','en'],['Praha, CZE','CZ','en'],['Київ, UA','UA','uk'],['Львів, UKR','UA','uk'],['北京，CN','CN','zh'],['上海, CHN','CN','zh'],['東京都, JP','JP','ja'],['大阪市, JPN','JP','ja']]) {
+for(const [city,country,language] of [['san francisco, us','US','en'],['nyc, usa','US','en'],['Praha, CZE','CZ','cs'],['Київ, UA','UA','uk'],['Львів, UKR','UA','uk'],['北京，CN','CN','zh'],['上海, CHN','CN','zh'],['東京都, JP','JP','ja'],['大阪市, JPN','JP','ja']]) {
  p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:city},geoResult:{country_code:country,feature_code:'PPL',latitude:35,longitude:140}});refresh(p);
  assert.equal(p.positions,0);assert.equal(p.requests,1);assert.equal(p.geocodes,1);
  assert.equal(new URL(p.urls[0]).searchParams.get('language'),language);
  assert.equal(new URL(p.urls[0]).searchParams.get('countryCode'),country);
- assert.equal(new URL(p.urls[0]).searchParams.get('name'),location.parse(city).city);
+ assert.equal(new URL(p.urls[0]).searchParams.get('name'),(city==='nyc, usa'?'New York':location.parse(city).city));
 }
 assert.equal(location.normalize('nyc, usa'),'nyc, US');assert.equal(location.normalize('London, UK'),'London, GB');
 assert.equal(location.normalize('東京，ＪＰ'),'東京, JP');
@@ -229,9 +229,9 @@ assert.equal(location.scope({WEATHER_SOURCE:1,WEATHER_CITY:'nyc, usa'}),location
 for(const [short,full] of [['東京','東京都'],['大阪','大阪市'],['京都','京都市']]) {
  p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:short+', JP'},geoResults:n=>n===1?[]:[{country_code:'JP',feature_code:'PPLC',latitude:35,longitude:139}]});refresh(p);
  assert.equal(p.positions,0);assert.equal(p.requests,1);assert.equal(p.geocodes,2);
- assert.equal(new URL(p.urls[1]).searchParams.get('name'),full);
+ assert.equal(new URL(p.urls[0]).searchParams.get('name'),full);
 }
-p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'東京, JP'},noCity:true});refresh(p);assert.equal(p.geocodes,2);assert.equal(p.requests,0);assert.equal(p.context.inFlight,false);refresh(p);assert.equal(p.geocodes,2,'Fallback is bounded and retry throttling still applies');
+p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'東京, JP'},noCity:true});refresh(p);assert.equal(p.geocodes,3);assert.equal(p.requests,0);assert.equal(p.context.inFlight,false);refresh(p);assert.equal(p.geocodes,3,'Fallback is bounded and retry throttling still applies');
 p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'東京, JP'},geoStatus:503});refresh(p);assert.equal(p.geocodes,1,'Do not retry alternate spellings after server errors');
 p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'東京, JP'},deferGeoHttp:true,noCity:true});refresh(p);p.events.webviewclosed({response:JSON.stringify({SHOW_WEATHER:0})});p.resolveGeoHttp();assert.equal(p.geocodes,1);assert.equal(p.positions,0,'Disabling weather cancels pending spelling fallbacks');
 console.log('Language checks passed: country aliases, Unicode input, localized searches, bounded Japanese-name fallback, no GPS and cancellation.');
@@ -241,3 +241,27 @@ p=phone();p.events.ready();assert.equal(p.messages[0].RECONNECT_VIBE,0);assert.e
 p.events.webviewclosed({response:JSON.stringify({RECONNECT_VIBE:1,RECONNECT_PATTERN:3,DISCONNECT_PATTERN:2})});assert.equal(p.savedSettings.RECONNECT_VIBE,1);assert.equal(p.savedSettings.RECONNECT_PATTERN,3);assert.equal(p.savedSettings.DISCONNECT_PATTERN,2);assert.equal(p.messages.at(-1).RECONNECT_PATTERN,3);
 p.events.webviewclosed({response:JSON.stringify({RECONNECT_PATTERN:99})});assert.equal(p.savedSettings.RECONNECT_PATTERN,3);
 console.log('Reconnect settings passed: off by default, independent persisted pattern, invalid-value rejection and stable message keys.');
+
+// Explicit choices bind weather to the chosen place, never to another namesake.
+const chosen={id:4951788,name:'Springfield',admin1:'Massachusetts',country:'United States',country_code:'US',feature_code:'PPL',latitude:42.10148,longitude:-72.58981};
+const chosenSettings={WEATHER_SOURCE:1,WEATHER_CITY:'Springfield, US',WEATHER_PLACE:location.encodeSelection(chosen,'Springfield, US')};
+p=phone({settings:chosenSettings});p.events.ready();refresh(p);
+assert.equal(p.geocodes,0);assert.equal(p.positions,0);assert.match(p.urls[0],/latitude=42.10&longitude=-72.59/);
+assert.equal(p.messages[0].WEATHER_PLACE,undefined);assert.equal(p.messages[0].WEATHER_LOCATION_ID,location.id(location.scope(chosenSettings)));
+p.events.webviewclosed({response:JSON.stringify({NUMERAL_FONT:7})});assert.equal(JSON.parse(p.savedSettings.WEATHER_PLACE).id,chosen.id);
+p.events.webviewclosed({response:JSON.stringify({WEATHER_CITY:'Prague, CZ'})});assert.equal(p.savedSettings.WEATHER_PLACE,'');
+p=phone({settings:chosenSettings,deferHttp:true});refresh(p);
+p.events.webviewclosed({response:JSON.stringify({WEATHER_PLACE:location.encodeSelection({...chosen,id:4250542,latitude:39.80172,longitude:-89.64371},'Springfield, US')})});p.resolveHttp();assert(!p.messages.some(m=>m.TEMPERATURE!==undefined));
+const place=location.parse('Wien, AT'),query=location.searches(place)[0];
+assert.equal(query.language,'de');assert.equal(location.find([{...chosen,country_code:'AT',name:'Wiener Neustadt'}],place,query),null);
+assert.equal(location.find([chosen,{...chosen,id:4250542}],location.parse('Springfield, US'),{name:'Springfield',language:'en'}),null);
+for(const bad of ['{}','broken',JSON.stringify({...chosenSettings,input:'London, GB'}),JSON.stringify({...JSON.parse(chosenSettings.WEATHER_PLACE),latitude:200})])assert.equal(location.selection({...chosenSettings,WEATHER_PLACE:bad}),null);
+assert.deepEqual(location.parse(' Springfield , IL , usa '),{city:'Springfield',country:'US',region:'IL'});
+assert.equal(location.parse('a,b,c,US'),null);
+p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'Varsovie, PL'},language:'fr-FR',geoResults:(n,url)=>new URL(url).searchParams.get('language')==='fr'?[{...chosen,name:'Varsovie',country_code:'PL'}]:[]});refresh(p);assert.equal(p.requests,1);assert.equal(p.geocodes,2);
+p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'Springfield, IL, US'},geoResult:{...chosen,admin1:'Illinois'}});refresh(p);assert.equal(new URL(p.urls[0]).searchParams.get('name'),'Springfield, IL');
+for(const value of ['दिल्ली, IN','ঢাকা, BD','تهران, IR','کراچی, PK','กรุงเทพมหานคร, TH','თბილისი, GE','Երևան, AM','서울, KR','台北, TW'])assert(location.searches(location.parse(value),'fr-FR').length<=4);
+assert.equal(keys.indexOf('WEATHER_PLACE'),40);
+console.log('Place picker data passed: explicit coordinates, phone-only persistence, selection validation, no repeated geocoding, stale-result cancellation, local languages, regional qualifiers and ambiguous/prefix rejection.');
+p=phone({settings:{WEATHER_SOURCE:1,WEATHER_CITY:'München, DE'},geoResults:n=>n===1?[{...chosen,id:2867714,name:'München',country_code:'DE'},{...chosen,id:2867711,name:'München',country_code:'DE'}]:[{...chosen,id:2867711,name:'München',country_code:'DE'}]});refresh(p);assert.equal(p.geocodes,1);assert.equal(p.requests,0,'An ambiguous local match must not fall through to a misleading English namesake');
+console.log('Ambiguous local names remain unresolved until a place is chosen.');

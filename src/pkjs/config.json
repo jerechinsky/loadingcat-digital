@@ -81,7 +81,7 @@
       },
       {
         "type": "text",
-        "defaultValue": "Back starts a spin when it wakes the light. Other backlight activations can also trigger it.",
+        "defaultValue": "The Back button starts a spin only when it turns the backlight on. Wrist flicks that wake the light also trigger this, even with Spin on wrist flick off. Pebble cannot tell these apart. Turn both triggers off for seconds only.",
         "id": "backlight-note"
       },
       {
@@ -434,12 +434,44 @@
         "messageKey": "WEATHER_CITY",
         "label": "City",
         "defaultValue": "",
-        "description": "Enter city, country code. For example: Prague, CZ or NYC, US. USA and UK work too. Local names are supported, such as Praha, Київ, 北京 and 東京. If not found, try the full city name or its English spelling; temperature shows --° until found.",
+        "description": "Enter a city or village and country code. For example: Prague, CZ or Praha, CZ. English and local names are supported; USA and UK work too. You can add a region, like Springfield, IL, US. Tap Find place to check the location.",
         "attributes": {
           "placeholder": "Prague, CZ",
           "maxlength": 80,
           "type": "text",
           "autocorrect": "off"
+        }
+      },
+      {
+        "type": "button",
+        "id": "find-place",
+        "defaultValue": "Find place"
+      },
+      {
+        "type": "select",
+        "id": "place-results",
+        "label": "Choose a place",
+        "defaultValue": "",
+        "options": [
+          {
+            "label": "Choose a match",
+            "value": ""
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "place-status",
+        "defaultValue": "Find place needs internet. If a name is missing, try its full name or English spelling."
+      },
+      {
+        "type": "input",
+        "messageKey": "WEATHER_PLACE",
+        "label": "Saved place",
+        "defaultValue": "",
+        "attributes": {
+          "type": "hidden",
+          "maxlength": 1024
         }
       },
       {

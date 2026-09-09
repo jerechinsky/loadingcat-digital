@@ -1,7 +1,7 @@
 var preferences = require('./settings');
 var location = require('./location');
 var Clay = require('./vendor/clay');
-var clay = new Clay(require('./config.json'), require('./settings-page'), {autoHandleEvents: false});
+var clay = new Clay(require('./config.json'), require('./settings-page'), {autoHandleEvents: false, userData:{createLocation:location.create}});
 /* Open-Meteo weather. Phone coordinates are rounded and never persisted.
  * A custom city caches its resolved coordinates to avoid repeat searches. */
 var CACHE_KEY = 'loading-cat-weather-v1';
@@ -99,6 +99,8 @@ function refreshWeather() {
     xhr.send();
   }
   if(city) {
+    var selected=location.selection(preferences.values);
+    if(selected){forecast(selected.latitude,selected.longitude);return;}
     try {
       var saved=JSON.parse(localStorage.getItem(CITY_CACHE_KEY) || 'null');
       if(saved && saved.scope===scope && typeof saved.lat==='number' && typeof saved.lon==='number' &&
@@ -108,24 +110,22 @@ function refreshWeather() {
         forecast(saved.lat,saved.lon);return;
       }
     } catch(e) { /* Resolve again if the saved city is unavailable. */ }
-    var queries=location.searches(city),queryIndex=0;
+    var queries=location.searches(city,navigator.language),queryIndex=0;
     function searchCity() {
     if(!current())return;
     var query=queries[queryIndex++];
     var search=new XMLHttpRequest();activeXhr=search;
     search.open('GET','https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(query.name)+
-      '&countryCode='+city.country+'&count=5&language='+query.language+'&format=json',true);
+      '&countryCode='+city.country+'&count=20&language='+query.language+'&format=json',true);
     search.timeout=15000;
     search.onload=function () {
       if(!current())return;
       try {
         if(search.status!==200){done();return;}
         var results=JSON.parse(search.responseText).results || [];
-        var found=results.filter(function (r) {
-          return r.country_code===city.country && /^PPL/.test(r.feature_code || '') &&
-            typeof r.latitude==='number' && typeof r.longitude==='number' &&
-            isFinite(r.latitude) && isFinite(r.longitude) && Math.abs(r.latitude)<=90 && Math.abs(r.longitude)<=180;
-        })[0];
+        var matches=location.matches(results,city,query);
+        if(matches.length>1){done();return;}
+        var found=matches[0];
         if(!found){if(queryIndex<queries.length)searchCity();else done();return;}
         var lat=Number(found.latitude.toFixed(2)),lon=Number(found.longitude.toFixed(2));
         try {localStorage.setItem(CITY_CACHE_KEY,JSON.stringify({scope:scope,lat:lat,lon:lon,time:Date.now()}));}catch(e){}

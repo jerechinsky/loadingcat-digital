@@ -16,7 +16,7 @@ function phone(saved={},platform='emery'){
  return {fire,store,messages,html(){fire('showConfiguration');assert(url.startsWith('data:text/html'));return decodeURIComponent(url.slice(url.indexOf(',')+1));}};
 }
 (async()=>{
- assert.equal(Object.keys(specs).length,26);
+ assert.equal(Object.keys(specs).length,27);
  assert.doesNotMatch(bundle,/cat-preview-canvas|cat-preview-seconds|Live watchface preview/,'Development preview is absent from the shipped bundle');
  for(const retired of ['STYLE','SHOW_TIME','TIME_LAYOUT','FONT_STYLE','COMPACT','DARK_TEXT','OUTLINE'])assert(!Object.hasOwn(specs,retired),retired+' is not a public setting');
  const browser=await chromium.launch({headless:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});
@@ -29,12 +29,12 @@ function phone(saved={},platform='emery'){
  const row=k=>page.locator('.component-toggle,.component-select,.component-input').filter({has:page.getByText(specs[k].label,{exact:true})});
  const field=k=>row(k).locator('[data-manipulator-target]');
  async function value(k){return specs[k].type==='input'?await field(k).inputValue():specs[k].type==='toggle'?Number(await field(k).isChecked()):Number(await field(k).inputValue());}
- async function set(k,v){if(specs[k].type==='toggle')await field(k).evaluate((e,v)=>{e.checked=!!v;e.dispatchEvent(new Event('change',{bubbles:true}));},v);else if(specs[k].type==='input')await field(k).fill(v);else await field(k).selectOption(String(v));}
+ async function set(k,v){if(specs[k].type==='toggle')await field(k).evaluate((e,v)=>{e.checked=!!v;e.dispatchEvent(new Event('change',{bubbles:true}));},v);else if(k==='WEATHER_PLACE')await field(k).evaluate((e,v)=>e.value=v,v);else if(specs[k].type==='input')await field(k).fill(v);else await field(k).selectOption(String(v));}
  async function save(ph){await page.getByRole('button',{name:'Save settings'}).click();await page.waitForURL('https://settings.test/close#**');ph.fire('webviewclosed',{response:page.url().split('#')[1]});return JSON.parse(ph.store['loading-cat-settings-v1']);}
  async function checkStock(){
-  assert.equal(await page.locator('input[data-manipulator-target],select[data-manipulator-target]').count(),26);
+  assert.equal(await page.locator('input[data-manipulator-target],select[data-manipulator-target]').count(),28);
   assert.equal(await page.locator('canvas,.cat-preview,.cat-reset,input[type=time],input[type=range],[id^="cat-preview-"]').count(),0);
-  assert.equal(await page.getByRole('button').count(),1,'Save is the only button');
+  assert.equal(await page.getByRole('button',{includeHidden:true}).count(),2,'Save and Find place are the only buttons');
   assert.equal(await page.getByRole('button',{name:'Save settings'}).count(),1);
   assert.doesNotMatch(await page.locator('body').innerText(),/Example time|Example seconds|Play seconds|Pause seconds|Test animation|Reset to defaults|Live preview|Browser demo/);
   assert.match(await page.locator('body').innerText(),/Digital adaptation by yerex\./);
@@ -76,7 +76,7 @@ function phone(saved={},platform='emery'){
   const mono=['aplite','diorite','flint'].includes(model),light=['emery','flint','gabbro'].includes(model);
   assert.equal(await row('GRAY_NOSE').isVisible(),mono);assert.equal(await field('GRAY_NOSE').isEnabled(),mono);
   assert.equal(await row('LIGHT_TRIGGER').isVisible(),light);assert.equal(await field('LIGHT_TRIGGER').isEnabled(),light);
-  assert.equal(await page.getByText('Back starts a spin when it wakes the light. Other backlight activations can also trigger it.',{exact:true}).isVisible(),light);
+  assert.equal(await page.getByText('The Back button starts a spin only when it turns the backlight on. Wrist flicks that wake the light also trigger this, even with Spin on wrist flick off. Pebble cannot tell these apart. Turn both triggers off for seconds only.',{exact:true}).isVisible(),light);
   await set('SHOW_SPINNER',0);assert(await row('DISCONNECT_VIBE').isVisible());
   for(const key of ['SPOKES','SECOND_HAND','ANIMATE','FLICK_TRIGGER','LIGHT_TRIGGER','SPIN_MOTION','SPIN_LENGTH'])assert(!await row(key).isVisible(),key+' hides with spinner');
   assert(!await page.getByText('One turn per minute, in spoke-sized steps.',{exact:true}).isVisible());
@@ -96,11 +96,11 @@ function phone(saved={},platform='emery'){
  for(const [k,spec] of Object.entries(specs)){
   await set('WEATHER_SOURCE',1);
   for(const parent of ['SHOW_SPINNER','ANIMATE','SHOW_WEATHER','DISCONNECT_VIBE','RECONNECT_VIBE'])await set(parent,1);
-  const choices=spec.type==='input'?['','Prague, CZ','New York, US']:spec.type==='toggle'?[0,1]:spec.options.map(o=>Number(o.value));
+  const choices=k==='WEATHER_PLACE'?['']:spec.type==='input'?['','Prague, CZ','New York, US']:spec.type==='toggle'?[0,1]:spec.options.map(o=>Number(o.value));
   for(const choice of choices){await set(k,choice);assert.equal(await value(k),choice,k+' choice');}
   exercised[k]=choices;
  }
- const expected={RECONNECT_VIBE:1,RECONNECT_PATTERN:1,WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ',DISCONNECT_INVERT:1,DISCONNECT_VIBE:1,DISCONNECT_PATTERN:3,DISCONNECT_IGNORE_QUIET:1,NIGHT_PAUSE:1,NIGHT_START:23,NIGHT_END:8,SECOND_HAND:0,GRAY_NOSE:0,SHOW_WEATHER:0,SHOW_SPINNER:0,NUMERAL_FONT:8,TIME_FORMAT:2,LEADING_ZERO:0,SPOKES:12,SPIN_MOTION:0,ANIMATE:0,FLICK_TRIGGER:0,LIGHT_TRIGGER:0,SPIN_LENGTH:2,FAHRENHEIT:1,WEATHER_INTERVAL:60};
+ const expected={WEATHER_PLACE:'',RECONNECT_VIBE:1,RECONNECT_PATTERN:1,WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ',DISCONNECT_INVERT:1,DISCONNECT_VIBE:1,DISCONNECT_PATTERN:3,DISCONNECT_IGNORE_QUIET:1,NIGHT_PAUSE:1,NIGHT_START:23,NIGHT_END:8,SECOND_HAND:0,GRAY_NOSE:0,SHOW_WEATHER:0,SHOW_SPINNER:0,NUMERAL_FONT:8,TIME_FORMAT:2,LEADING_ZERO:0,SPOKES:12,SPIN_MOTION:0,ANIMATE:0,FLICK_TRIGGER:0,LIGHT_TRIGGER:0,SPIN_LENGTH:2,FAHRENHEIT:1,WEATHER_INTERVAL:60};
  // Set hidden select values directly, as saved preferences can remain hidden.
  for(const [k,v] of Object.entries(expected))await field(k).evaluate((e,v)=>{if(e.type==='checkbox')e.checked=!!v;else e.value=String(v);e.dispatchEvent(new Event('change',{bubbles:true}));},v);
  assert.deepEqual(await save(ph),expected);ph=phone(ph.store,'flint');await load(ph.html());for(const [k,v] of Object.entries(expected))assert.equal(await value(k),v,k+' persists');
@@ -112,7 +112,7 @@ function phone(saved={},platform='emery'){
  await load(demo);await checkStock();
  fs.writeFileSync(path.join(out,'settings.html'),demo);fs.writeFileSync(path.join(out,'settings-preview.html'),demo);
  assert.deepEqual(requests,[]);assert.deepEqual(errors,[]);
- fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify({settings:26,stock_clay:true,preview_absent:true,custom_chrome_absent:true,models:7,breakpoints:[320,390,480],offline:true,save_and_reopen:true,all_options:true,conditional_visibility:true,model_capabilities:true,hidden_preferences_preserved:true,capability_checks:capabilityChecks,choices_tested:exercised},null,2)+'\n');
- console.log('Stock Clay checks passed:26 settings, all choices,7 model capabilities, conditional visibility, hidden preference persistence, offline load and responsive form.');
+ fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify({settings:27,stock_clay:true,preview_absent:true,custom_chrome_absent:true,models:7,breakpoints:[320,390,480],offline:true,save_and_reopen:true,all_options:true,conditional_visibility:true,model_capabilities:true,hidden_preferences_preserved:true,capability_checks:capabilityChecks,choices_tested:exercised},null,2)+'\n');
+ console.log('Stock Clay checks passed:26 visible settings plus saved place, all choices,7 model capabilities, conditional visibility, hidden preference persistence, offline load and responsive form.');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

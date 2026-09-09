@@ -14,13 +14,18 @@ function apply(input) {
     if (!Object.prototype.hasOwnProperty.call(input, key)) return;
     var raw = input[key];
     if (raw && typeof raw === 'object') raw = raw.value;
-    if(specs[key].type==='input') { if(typeof raw==='string')values[key]=location.normalize(raw); return; }
+    if(specs[key].type==='input') {
+      if(typeof raw==='string')values[key]=key==='WEATHER_PLACE'?raw.slice(0,1024):location.normalize(raw);
+      return;
+    }
     if (raw === null || raw === '' || typeof raw === 'undefined') return;
     var value = Number(raw), spec = specs[key];
     if (!isFinite(value)) return;
     var allowed = spec.type === 'toggle' ? [0,1] : spec.options.map(function (o) { return Number(o.value); });
     if (allowed.indexOf(value) >= 0) values[key] = value;
   });
+  var selected=location.selection(values);
+  values.WEATHER_PLACE=selected?location.encodeSelection(selected,values.WEATHER_CITY):'';
 }
 try { apply(JSON.parse(localStorage.getItem('loading-cat-settings-v1') || '{}')); } catch (e) {}
 exports.values = values;
@@ -34,7 +39,7 @@ exports.save = function (input) {
 exports.watchValues = function () {
   var payload={};
   Object.keys(values).forEach(function (key) {
-    if(key!=='WEATHER_SOURCE' && key!=='WEATHER_CITY')payload[key]=values[key];
+    if(key!=='WEATHER_SOURCE' && key!=='WEATHER_CITY' && key!=='WEATHER_PLACE')payload[key]=values[key];
   });
   payload.WEATHER_LOCATION_ID=location.id(location.scope(values));
   return payload;

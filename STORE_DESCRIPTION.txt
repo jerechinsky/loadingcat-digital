@@ -1,7 +1,16 @@
-a digital variant of "loading cat" by zbw / zbzbw. really like the original, just wanted a digital clock too. thanks to zbw for the watchface and cat artwork!
+A digital variant of "loading cat" by zbw / zbzbw. Really like the original, just wanted a digital clock too. Thanks to zbw for the watchface and cat artwork!
 
-stacked time on the left, optional temperature on the right. the spinner follows the seconds, and you can flick your wrist to give it a spin. choose up to 12 spokes, a few fonts and animation options. you can pause flick and backlight spins at night while the seconds keep going. optional disconnect alerts with four vibration patterns, a white cat on a black background, extra delay and a Quiet Time override. works on all pebble models.
+- stacked hours and minutes, with four fonts and 12/24-hour time
+- optional local temperature in °C or °F, using your phone's location
+- a seconds spinner with 6, 7, 8, 10 or 12 spokes
+- wrist-flick and supported backlight spins, with two speeds and 2–4-second animations
+- optional nighttime pause for animations; seconds keep going
+- optional disconnect vibration, with four patterns and a Quiet Time override
+- optional white cat on a black background when disconnected
+- dithered spinner shading and an optional gray nose on monochrome watches
 
-original: https://github.com/zbzbw/loadingcat-pebble
-adapted by yerex
-weather: Open-Meteo, CC BY 4.0
+Works on all Pebble models. Weather refreshes every 15, 30 or 60 minutes; turning it off stops location and weather requests.
+
+Original: https://github.com/zbzbw/loadingcat-pebble
+Adapted by yerex
+Weather: Open-Meteo, CC BY 4.0

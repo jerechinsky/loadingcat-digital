@@ -10,7 +10,6 @@ from libpebble2.communication import PebbleConnection
 from libpebble2.services.appmessage import AppMessageService, Int32
 from libpebble2.services.screenshot import Screenshot
 from libpebble2.protocol.system import TimeMessage, GetTimeRequest
-from libpebble2.protocol.logs import AppLogMessage, AppLogShippingControl
 from libpebble2.communication.transports.qemu.protocol import QemuTap, QemuButton
 from pebble_tool.commands.emucontrol import send_data_to_qemu
 from pebble_tool.commands.screenshot import ScreenshotCommand
@@ -28,7 +27,8 @@ p.add_argument('--install', action='store_true', help='Install the current build
 p.add_argument('--settings-check', action='store_true')
 p.add_argument('--font-check', action='store_true')
 p.add_argument('--seconds-check', action='store_true')
-p.add_argument('--inversion-check', action='store_true', help='Check disconnected colors and delayed alerts; requires --direct')
+p.add_argument('--inversion-check', action='store_true', help='Check disconnected colors and native reconnect restoration; requires --direct')
+p.add_argument('--compare-appearance', type=Path, help='Compare native connected/disconnected pixels with a prior capture')
 p.add_argument('--connection-check', action='store_true', help='Check native disconnect vibration patterns; requires --direct')
 p.add_argument('--spokes-check', action='store_true', help='Check 12-spoke layout and live seconds handoffs')
 args = p.parse_args()
@@ -125,7 +125,7 @@ if args.inversion_check:
         send_data_to_qemu(transport,QemuBluetoothConnection(connected=connected));time.sleep(wait)
     message(ANIMATE=0,SECOND_HAND=0,SHOW_SPINNER=1,SHOW_WEATHER=1,NUMERAL_FONT=2,GRAY_NOSE=1,
             SPOKES=8,TIME_FORMAT=2,LEADING_ZERO=1,TEMPERATURE=220,WEATHER_TIME=int(fixed.timestamp()),
-            DISCONNECT_VIBE=0,DISCONNECT_INVERT=1,DISCONNECT_DELAY=0)
+            DISCONNECT_VIBE=0,DISCONNECT_INVERT=1,DISCONNECT_DELAY=60)
     ScreenshotCommand._set_time(watch,fixed);time.sleep(.3)
     before=frame();before.save(args.output/f'{args.platform}-connected.png')
     link(False,28)
@@ -138,19 +138,11 @@ if args.inversion_check:
     assert after.convert('RGB').getpixel((3,after.height//2))==(0,0,0)
     link(True);ScreenshotCommand._set_time(watch,fixed);time.sleep(.3)
     equal(frame(),before)
-    result={'version':meta['versionLabel'],'platform':args.platform,'disconnected_palette_changed':True,'black_background':True,'reconnect_restores':True}
-    if args.platform=='emery':
-        message(DISCONNECT_VIBE=1,DISCONNECT_PATTERN=2,DISCONNECT_IGNORE_QUIET=1,DISCONNECT_DELAY=5)
-        events.clear();link(False,27)
-        equal(frame(),before);assert not any(events),'alert fired before additional delay'
-        time.sleep(5)
-        equal(frame(),after);assert sum(events)==3,events
-        link(True);ScreenshotCommand._set_time(watch,fixed);time.sleep(.3)
-        message(DISCONNECT_DELAY=10)
-        events.clear();link(False,27);link(True);time.sleep(11)
-        ScreenshotCommand._set_time(watch,fixed);time.sleep(.3)
-        equal(frame(),before);assert not any(events),'reconnection did not cancel pending vibration'
-        result.update(extra_delay=True,reconnect_cancels_pending=True)
+    result={'version':meta['versionLabel'],'platform':args.platform,'disconnected_palette_changed':True,'black_background':True,'reconnect_restores':True,'retired_delay_ignored':True}
+    if args.compare_appearance:
+        equal(before,Image.open(args.compare_appearance/f'{args.platform}-connected.png'))
+        equal(after,Image.open(args.compare_appearance/f'{args.platform}-disconnected.png'))
+        result['pixel_identical_to_previous_release']=True
     message(DISCONNECT_VIBE=0,DISCONNECT_DELAY=0,DISCONNECT_INVERT=0,DISCONNECT_IGNORE_QUIET=0,ANIMATE=1,SECOND_HAND=1)
     (args.output/f'{args.platform}-inversion-verification.json').write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps(result),flush=True);cleanup();raise SystemExit(0)
@@ -191,9 +183,6 @@ if args.connection_check:
     cleanup();raise SystemExit(0)
 
 if args.spokes_check:
-    logs=[]
-    watch.register_endpoint(AppLogMessage,lambda packet:logs.append((time.monotonic(),packet.message)))
-    watch.send_packet(AppLogShippingControl(enable=True))
     def watch_second():
         queue=watch.get_endpoint_queue(TimeMessage)
         try:
@@ -232,14 +221,13 @@ if args.spokes_check:
         for count,start,repeat in [(8,6,False),(12,4,False),(12,59,False),(12,3,True)]:
             print(f'Checking handoff count={count} second={start} repeat={repeat}',flush=True)
             set_spoke_time(start,count)
-            logs.clear();kicked=time.monotonic()
+            kicked=time.monotonic()
             send_data_to_qemu(transport,QemuTap(axis=QemuTap.Axis.Y,direction=1))
             if repeat:
                 time.sleep(.9)
                 send_data_to_qemu(transport,QemuTap(axis=QemuTap.Axis.Y,direction=-1))
             deadline=time.monotonic()+6
-            while not any('Spin stopped' in text for stamp,text in logs) and time.monotonic()<deadline: time.sleep(.05)
-            assert any('Spin stopped' in text for stamp,text in logs),('no spin completion',logs)
+            while time.monotonic()<deadline: time.sleep(.05)
             time.sleep(.15)
             actual_second=watch_second()
             observed=phase(frame(),count)

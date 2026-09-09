@@ -1,3 +1,5 @@
+Version 1.5.6 reduces spinner rendering calls, subscribes animation triggers only while useful, and makes the watch the sole weather scheduler. Duplicate readings no longer rewrite flash or request another redraw. The extra disconnect delay is retired and its old message key is reserved. See battery-audit.md for checks and limits.
+
 Version 1.5.5 adds extra disconnect delay and an optional white cat on black. The original eyes and pupils are preserved with a thin dark outline; ears and gray details keep their natural colors. The background bitmap reloads and recolors only on visual state changes; original resources are unchanged. tools/generate_disconnect_eyes.py regenerates the eye drawing spans for all seven targets.
 
 Version 1.5.4 adds optional disconnect vibrations, four patterns and an Ignore Quiet Time toggle. Pebble confirms sustained disconnects before notifying the face.

@@ -505,41 +505,9 @@
         "defaultValue": false
       },
       {
-        "type": "select",
-        "messageKey": "DISCONNECT_DELAY",
-        "label": "Extra alert delay",
-        "defaultValue": "0",
-        "options": [
-          {
-            "label": "No extra delay (fastest)",
-            "value": "0"
-          },
-          {
-            "label": "5 seconds",
-            "value": "5"
-          },
-          {
-            "label": "10 seconds",
-            "value": "10"
-          },
-          {
-            "label": "15 seconds",
-            "value": "15"
-          },
-          {
-            "label": "30 seconds",
-            "value": "30"
-          },
-          {
-            "label": "60 seconds",
-            "value": "60"
-          }
-        ]
-      },
-      {
         "type": "text",
         "id": "disconnect-note",
-        "defaultValue": "Pebble already waits about 25 seconds before reporting a disconnect. This delay adds to that wait, for both the vibration and white-cat appearance. Reconnecting cancels the alert and restores the normal colors. Ignore Quiet Time applies only to vibration."
+        "defaultValue": "Pebble filters brief connection drops for about 25 seconds. The face changes back when your phone reconnects. Ignore Quiet Time applies only to vibration."
       }
     ]
   },

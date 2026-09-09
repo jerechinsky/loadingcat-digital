@@ -7,13 +7,12 @@ typedef struct {
   int32_t time_format, leading_zero;
   int32_t numeral_font, spin_motion;
   int32_t show_weather, fahrenheit, weather_interval, gray_nose, second_hand;
-  int32_t night_pause, night_start, night_end, disconnect_vibe, disconnect_pattern, disconnect_ignore_quiet, disconnect_delay, disconnect_invert;
+  int32_t night_pause, night_start, night_end, disconnect_vibe, disconnect_pattern, disconnect_ignore_quiet, disconnect_invert;
 } Settings;
 
 typedef struct { const uint32_t *key; size_t offset; int32_t min, max; } SettingBinding;
 #define BIND(key, member, min, max) {&key, offsetof(Settings, member), min, max}
 static const SettingBinding SETTINGS_BINDINGS[] = {
-  BIND(MESSAGE_KEY_DISCONNECT_DELAY,disconnect_delay,0,60),
   BIND(MESSAGE_KEY_DISCONNECT_INVERT,disconnect_invert,0,1),
   BIND(MESSAGE_KEY_DISCONNECT_VIBE,disconnect_vibe,0,1),
   BIND(MESSAGE_KEY_DISCONNECT_PATTERN,disconnect_pattern,0,3),
@@ -35,7 +34,6 @@ static const SettingBinding SETTINGS_BINDINGS[] = {
 
 static bool setting_valid(const SettingBinding *b, int32_t value) {
   if (value < b->min || value > b->max) return false;
-  if (*b->key == MESSAGE_KEY_DISCONNECT_DELAY) return value==0 || value==5 || value==10 || value==15 || value==30 || value==60;
   if (*b->key == MESSAGE_KEY_NUMERAL_FONT) return value == 0 || value == 2 || value == 7 || value == 8;
   if (*b->key == MESSAGE_KEY_SPOKES) return value == 6 || value == 7 || value == 8 || value == 10 || value == 12;
   if (*b->key == MESSAGE_KEY_WEATHER_INTERVAL) return value == 15 || value == 30 || value == 60;

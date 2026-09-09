@@ -12,7 +12,6 @@ module.exports = function () {
     function update() {
       ['DISCONNECT_PATTERN','DISCONNECT_IGNORE_QUIET'].forEach(function (key) { visible(items[key], enabled('DISCONNECT_VIBE')); });
       var connectionAlert=enabled('DISCONNECT_VIBE') || enabled('DISCONNECT_INVERT');
-      visible(items.DISCONNECT_DELAY, connectionAlert);
       visible(clay.getItemById('disconnect-note'), connectionAlert);
       var spinner = enabled('SHOW_SPINNER'), interaction = spinner && enabled('ANIMATE');
       ['SPOKES', 'SECOND_HAND', 'ANIMATE'].forEach(function (key) { visible(items[key], spinner); });

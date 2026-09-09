@@ -11,6 +11,8 @@ var lastAttempt = 0;
 var requestGeneration = 0;
 var activeXhr = null;
 var weatherWatchdog = null;
+var lastDelivered = null;
+var weatherSending = null;
 
 function cancelWeather() {
   requestGeneration++;
@@ -34,8 +36,12 @@ function readCache() {
 }
 
 function sendWeather(value) {
+  var key=value.temperature+":"+value.time;
+  if(key===lastDelivered || key===weatherSending)return;
+  weatherSending=key;
   Pebble.sendAppMessage({TEMPERATURE: value.temperature, WEATHER_TIME: value.time},
-    function () {}, function () { /* Retry on the next watch request, not in a loop. */ });
+    function () { lastDelivered=key; if(weatherSending===key)weatherSending=null; },
+    function () { if(weatherSending===key)weatherSending=null; });
 }
 
 function refreshWeather() {
@@ -92,11 +98,11 @@ function refreshWeather() {
 }
 
 Pebble.addEventListener('ready', function () {
-  // The watch requests weather after this handshake so two messages cannot race.
+  // The watch owns the refresh schedule. It requests weather after this handshake.
   var payload = {};
   Object.keys(preferences.values).forEach(function (key) { payload[key] = preferences.values[key]; });
   payload.JS_READY = 1;
-  Pebble.sendAppMessage(payload, function () { refreshWeather(); }, function () {});
+  Pebble.sendAppMessage(payload, function () {}, function () {});
 });
 Pebble.addEventListener('appmessage', function (event) {
   if (event.payload.REQUEST_WEATHER) refreshWeather();
@@ -112,9 +118,7 @@ Pebble.addEventListener('webviewclosed', function (event) {
     var parsed = clay.getSettings(event.response, false);
     var payload = preferences.save(parsed);
     if (!payload.SHOW_WEATHER) cancelWeather();
-    Pebble.sendAppMessage(payload, function () {
-      lastAttempt = 0;
-      refreshWeather();
-    }, function () { /* Saved phone settings are retried on next ready event. */ });
+    Pebble.sendAppMessage(payload, function () {},
+      function () { /* Saved phone settings are retried on next ready event. */ });
   } catch (e) { /* Closing without a valid save leaves settings unchanged. */ }
 });

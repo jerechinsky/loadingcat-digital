@@ -55,7 +55,7 @@ function phone(options = {}) {
     reject: () => geoFailure(), timeout: () => timers[0](), resolveHttp: () => pendingXhr.onload(), get aborted(){return aborted;}};
 }
 function refresh(p) {p.events.appmessage({payload: {REQUEST_WEATHER: 1}});}
-let p = phone(); p.events.ready();
+let p = phone(); p.events.ready(); refresh(p);
 assert.equal(p.requests, 1); assert.equal(p.messages[1].TEMPERATURE, -36);
 assert.equal(p.messages[1].WEATHER_TIME, now / 1000 - 900);
 assert.match(p.urls[0], /latitude=50\.09&longitude=14\.42/);
@@ -105,7 +105,7 @@ p=phone({defer:true});refresh(p);p.timeout();p.resolve();assert.equal(p.requests
 // Exercise every declared setting choice through the real normalization/save path.
 const config=JSON.parse(fs.readFileSync(__dirname+'/../src/pkjs/config.json','utf8'));
 const publicSettings=config.flatMap(section=>section.items||[]).filter(spec=>spec.messageKey);
-assert.equal(publicSettings.length,23,'The public menu only exposes supported presentation choices');
+assert.equal(publicSettings.length,22,'The public menu only exposes supported presentation choices');
 assert.deepEqual(publicSettings.find(spec=>spec.messageKey==='SPOKES').options.map(option=>Number(option.value)),[6,7,8,10,12]);
 for(const section of config)for(const spec of section.items||[])if(spec.messageKey){
  for(const value of spec.type==='toggle'?[0,1]:spec.options.map(o=>Number(o.value))){
@@ -129,7 +129,7 @@ for(const spokes of [0,11]){
  assert.equal(p.savedSettings.SPOKES,8);
  for(const key of Object.keys(retiredSettings))assert.equal(p.savedSettings[key],undefined,key+' must not remain in saved settings');
  for(const [key,value] of Object.entries(preservedSettings))assert.equal(p.savedSettings[key],value,key+' must survive saving');
- assert.equal(Object.keys(p.savedSettings).length,23);
+ assert.equal(Object.keys(p.savedSettings).length,22);
 }
 // Existing installs receive the new monochrome treatment until explicitly disabled.
 p=phone({settings:{NUMERAL_FONT:2,SHOW_WEATHER:0}});p.events.ready();assert.equal(p.messages[0].GRAY_NOSE,1);
@@ -165,5 +165,15 @@ p=phone();p.events.ready();assert.equal(p.messages[0].DISCONNECT_PATTERN,2);asse
 p.events.webviewclosed({response:JSON.stringify({DISCONNECT_VIBE:1,DISCONNECT_PATTERN:3,DISCONNECT_IGNORE_QUIET:1})});assert.equal(p.savedSettings.DISCONNECT_PATTERN,3);assert.equal(p.savedSettings.DISCONNECT_IGNORE_QUIET,1);
 
 assert.equal(keys.indexOf('DISCONNECT_DELAY'),32);assert.equal(keys.indexOf('DISCONNECT_INVERT'),33);
-p=phone();p.events.ready();assert.equal(p.messages[0].DISCONNECT_DELAY,0);assert.equal(p.messages[0].DISCONNECT_INVERT,0);
-p.events.webviewclosed({response:JSON.stringify({DISCONNECT_DELAY:15,DISCONNECT_INVERT:1})});assert.equal(p.savedSettings.DISCONNECT_DELAY,15);assert.equal(p.savedSettings.DISCONNECT_INVERT,1);
+p=phone();p.events.ready();assert.equal(p.messages[0].DISCONNECT_DELAY,undefined);assert.equal(p.messages[0].DISCONNECT_INVERT,0);
+p.events.webviewclosed({response:JSON.stringify({DISCONNECT_DELAY:15,DISCONNECT_INVERT:1})});assert.equal(p.savedSettings.DISCONNECT_DELAY,undefined);assert.equal(p.savedSettings.DISCONNECT_INVERT,1);
+
+// Only the watch initiates weather; saving unrelated settings never starts GPS.
+p=phone();p.events.ready();assert.equal(p.positions,0);refresh(p);assert.equal(p.positions,1);
+let delivered=p.messages.filter(m=>m.TEMPERATURE!==undefined).length;
+refresh(p);refresh(p);assert.equal(p.messages.filter(m=>m.TEMPERATURE!==undefined).length,delivered);
+p=phone({denied:true});refresh(p);assert.equal(p.positions,1);
+p.events.webviewclosed({response:JSON.stringify({NUMERAL_FONT:7})});refresh(p);assert.equal(p.positions,1,'Saving the font must not reset weather retry throttling');
+p=phone({settings:{DISCONNECT_DELAY:60}});p.events.ready();assert.equal(p.messages[0].DISCONNECT_DELAY,undefined);
+p.events.webviewclosed({response:JSON.stringify({DISCONNECT_INVERT:1})});assert.equal(p.savedSettings.DISCONNECT_DELAY,undefined);
+console.log('Battery checks passed: single weather scheduler, cached reply deduplication, unrelated settings preserve backoff, retired delay ignored.');

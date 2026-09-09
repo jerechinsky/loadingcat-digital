@@ -28,12 +28,13 @@ static uint8_t s_phase, s_step;
 static int8_t s_direction = 1;
 static time_t s_last_weather_request;
 static int32_t s_temperature, s_weather_time;
-static bool s_has_weather, s_js_ready, s_focused, s_spinning;
+static bool s_has_weather, s_js_ready, s_focused, s_spinning, s_tap_subscribed;
+#ifdef _PBL_API_EXISTS_backlight_service_subscribe
+static bool s_light_subscribed;
+#endif
 
 static uint32_t s_last_kick;
-static bool s_phone_connected, s_disconnect_visible, s_disconnect_pending, s_background_inverted;
-static AppTimer *s_disconnect_timer;
-static uint32_t s_disconnect_started;
+static bool s_phone_connected, s_disconnect_visible, s_background_inverted;
 
 static bool disconnected_colors(void) {
   return s_settings.disconnect_invert && s_disconnect_visible;
@@ -52,7 +53,7 @@ static uint32_t now_ms(void) {
 }
 
 static void redraw(void) {
-  if (s_canvas) layer_mark_dirty(s_canvas);
+  if (s_canvas && s_focused) layer_mark_dirty(s_canvas);
 }
 
 static void stop_seconds(void) {
@@ -115,7 +116,6 @@ static void spin_tick(void *context) {
     s_spin_timer = app_timer_register(spin_delay_ms(s_step, segment_count(), s_settings.spin_length, s_settings.spin_motion), spin_tick, NULL);
   } else {
     s_spinning=false;
-    APP_LOG(APP_LOG_LEVEL_INFO, "Spin stopped at phase %d", s_phase);
     sync_seconds();
   }
 }
@@ -134,7 +134,6 @@ static void kick_spin(int8_t direction) {
   s_direction = direction < 0 ? -1 : 1;
   s_step = 0;
   redraw();
-  APP_LOG(APP_LOG_LEVEL_INFO, "Spin started");
   uint32_t delay = spin_delay_ms(0, segment_count(), s_settings.spin_length, s_settings.spin_motion);
   if (delay) s_spin_timer = app_timer_register(delay, spin_tick, NULL);
   else spin_tick(NULL);
@@ -151,8 +150,28 @@ static void backlight_handler(bool on) {
 }
 #endif
 
+// Subscribe only while a trigger can actually start an animation.
+static void sync_triggers(void) {
+  bool active=s_focused && s_settings.show_spinner && s_settings.animate && !animation_paused_now();
+  bool tap=active && s_settings.flick_trigger;
+  if(tap!=s_tap_subscribed) {
+    if(tap)accel_tap_service_subscribe(tap_handler);
+    else accel_tap_service_unsubscribe();
+    s_tap_subscribed=tap;
+  }
+#ifdef _PBL_API_EXISTS_backlight_service_subscribe
+  bool light=active && s_settings.light_trigger;
+  if(light!=s_light_subscribed) {
+    if(light)backlight_service_subscribe(backlight_handler);
+    else backlight_service_unsubscribe();
+    s_light_subscribed=light;
+  }
+#endif
+}
+
 static void focus_handler(bool focused) {
   s_focused = focused;
+  sync_triggers();
   if(!focused){stop_spin();stop_seconds();}
   else{sync_seconds();redraw();}
   // Regaining focus restores clock position without starting a coasting spin.
@@ -182,15 +201,21 @@ static void draw_spinner(GContext *ctx) {
     int bx=center.x+vector[0]*outer/1000,by=center.y+vector[1]*outer/1000;
     int left=(ax<bx?ax:bx)-radius,right=(ax>bx?ax:bx)+radius;
     int top=(ay<by?ay:by)-radius,bottom=(ay>by?ay:by)+radius;
-#ifdef PBL_COLOR
-    graphics_context_set_stroke_color(ctx,display_color(GColorFromRGB(brightness,brightness,brightness)));
-#endif
-    for(int y=top;y<=bottom;++y)for(int x=left;x<=right;++x) {
-      if(!spinner_contains(x,y,ax,ay,bx,by,radius))continue;
-#ifdef PBL_BW
-      graphics_context_set_stroke_color(ctx,display_color(spinner_dither(x,y,brightness)?GColorWhite:GColorBlack));
-#endif
-      graphics_draw_pixel(ctx,GPoint(x,y));
+    for(int y=top;y<=bottom;++y) {
+      int run_start=left;
+      bool in_run=false;
+      GColor run_color=GColorBlack;
+      for(int x=left;x<=right+1;++x) {
+        bool inside=x<=right && spinner_contains(x,y,ax,ay,bx,by,radius);
+        GColor color=display_color(PBL_IF_COLOR_ELSE(GColorFromRGB(brightness,brightness,brightness),
+            spinner_dither(x,y,brightness)?GColorWhite:GColorBlack));
+        if(in_run && (!inside || !gcolor_equal(color,run_color))) {
+          graphics_context_set_fill_color(ctx,run_color);
+          graphics_fill_rect(ctx,GRect(run_start,y,x-run_start,1),0,GCornerNone);
+          in_run=false;
+        }
+        if(inside && !in_run){run_start=x;run_color=color;in_run=true;}
+      }
     }
   }
 }
@@ -301,6 +326,7 @@ static void request_weather(void) {
 static void tick_handler(struct tm *tick_time, TimeUnits changed) {
   (void)tick_time;
   (void)changed;
+  sync_triggers();
   sync_seconds();
   redraw();
   time_t now = time(NULL);
@@ -321,37 +347,15 @@ static void play_disconnect_alert(void) {
   vibes_enqueue_custom_pattern(patterns[s_settings.disconnect_pattern]);
 }
 
-static void cancel_disconnect_timer(void) {
-  if(s_disconnect_timer){app_timer_cancel(s_disconnect_timer);s_disconnect_timer=NULL;}
-}
-
-static void confirm_disconnect(void *context) {
-  (void)context;
-  s_disconnect_timer=NULL;
-  s_disconnect_pending=false;
-  if(s_phone_connected)return;
-  s_disconnect_visible=true;
-  redraw();
-  if(s_settings.disconnect_vibe &&
-      (s_settings.disconnect_ignore_quiet || !quiet_time_is_active()))play_disconnect_alert();
-}
-
-static void schedule_disconnect(void) {
-  cancel_disconnect_timer();
-  uint32_t elapsed=now_ms()-s_disconnect_started;
-  uint32_t delay=s_settings.disconnect_delay*1000u;
-  if(elapsed>=delay)confirm_disconnect(NULL);
-  else s_disconnect_timer=app_timer_register(delay-elapsed,confirm_disconnect,NULL);
-}
-
 static void connection_handler(bool connected) {
-  const bool disconnected=s_phone_connected && !connected;
+  // Pebble already filters brief drops. React once to each reported transition.
+  if(s_phone_connected==connected)return;
+  bool was_visible=disconnected_colors();
   s_phone_connected=connected;
-  if(connected) {
-    cancel_disconnect_timer();s_disconnect_pending=false;s_disconnect_visible=false;redraw();
-  } else if(disconnected) {
-    s_disconnect_started=now_ms();s_disconnect_pending=true;schedule_disconnect();
-  }
+  s_disconnect_visible=!connected;
+  if(was_visible!=disconnected_colors())redraw();
+  if(!connected && s_settings.disconnect_vibe &&
+      (s_settings.disconnect_ignore_quiet || !quiet_time_is_active()))play_disconnect_alert();
 }
 
 static void load_numeral_fonts(void) {
@@ -367,14 +371,19 @@ static void load_numeral_fonts(void) {
 static void inbox_received(DictionaryIterator *iter, void *context) {
   (void)context;
   int previous_font = s_settings.numeral_font;
-  int previous_delay = s_settings.disconnect_delay;
+  int previous_weather = s_settings.show_weather;
+  int previous_interval = s_settings.weather_interval;
+  bool changed = false;
   if (settings_receive(&s_settings,iter)) {
-    if(s_disconnect_pending && previous_delay!=s_settings.disconnect_delay)schedule_disconnect();
+    changed=true;
+    sync_triggers();
     if (s_canvas && previous_font != s_settings.numeral_font) load_numeral_fonts();
     stop_spin(); s_phase = 0;
     sync_seconds();
-    s_last_weather_request = 0;
-    request_weather();
+    if(s_settings.show_weather && (!previous_weather || previous_interval!=s_settings.weather_interval)) {
+      s_last_weather_request = 0;
+      request_weather();
+    }
   }
   Tuple *ready = dict_find(iter, MESSAGE_KEY_JS_READY);
   if (ready) {
@@ -390,14 +399,15 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
     int32_t fetched = stamp->value->int32;
     time_t now = time(NULL);
     if (value >= -1000 && value <= 700 && fetched > 0 && fetched <= now && now - fetched <= WEATHER_MAX_AGE) {
-      s_temperature = value;
-      s_weather_time = fetched;
-      s_has_weather = true;
-      persist_write_int(WEATHER_CACHE_KEY, value);
-      persist_write_int(WEATHER_TIME_KEY, fetched);
+      if(!s_has_weather || s_temperature!=value || s_weather_time!=fetched) {
+        changed=true;
+        if(!s_has_weather || s_temperature!=value)persist_write_int(WEATHER_CACHE_KEY,value);
+        if(!s_has_weather || s_weather_time!=fetched)persist_write_int(WEATHER_TIME_KEY,fetched);
+        s_temperature=value;s_weather_time=fetched;s_has_weather=true;
+      }
     }
   }
-  redraw();
+  if(changed)redraw();
 }
 
 static void window_load(Window *window) {
@@ -441,25 +451,21 @@ static void init(void) {
   s_focused = true;
   sync_seconds();
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
-  accel_tap_service_subscribe(tap_handler);
+  sync_triggers();
   app_focus_service_subscribe(focus_handler);
-#ifdef _PBL_API_EXISTS_backlight_service_subscribe
-  backlight_service_subscribe(backlight_handler);
-#endif
   app_message_register_inbox_received(inbox_received);
   app_message_open(512, 64);
 }
 
 static void deinit(void) {
-  cancel_disconnect_timer();
   stop_spin();
   stop_seconds();
   tick_timer_service_unsubscribe();
   connection_service_unsubscribe();
-  accel_tap_service_unsubscribe();
+  if(s_tap_subscribed)accel_tap_service_unsubscribe();
   app_focus_service_unsubscribe();
 #ifdef _PBL_API_EXISTS_backlight_service_subscribe
-  backlight_service_unsubscribe();
+  if(s_light_subscribed)backlight_service_unsubscribe();
 #endif
   app_message_deregister_callbacks();
   window_destroy(s_window);

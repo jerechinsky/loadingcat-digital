@@ -1,6 +1,6 @@
 # Loading Cat Digital
 
-a digital variant of ["loading cat" by zbw / zbzbw](https://github.com/zbzbw/loadingcat-pebble). really like the original, just wanted a digital clock too. thanks to zbw for the watchface and cat artwork!
+A digital variant of ["loading cat" by zbw / zbzbw](https://github.com/zbzbw/loadingcat-pebble). Really like the original, just wanted a digital clock too. Thanks to zbw for the watchface and cat artwork!
 
 [pebble store](https://apps.repebble.com/6f5289e6cd7f4ae7b666cb7f) · [download](https://github.com/jerechinsky/loadingcat-digital/releases/latest)
 
@@ -12,15 +12,17 @@ a digital variant of ["loading cat" by zbw / zbzbw](https://github.com/zbzbw/loa
 - **animation:** flick your wrist for a spin that slows down, then returns to the current seconds position. choose slow or fast, lasting 2, 3 or 4 seconds. default is fast, 3 seconds, 8 spokes. the spinner, animation and individual triggers can be switched off.
 - **nighttime:** optionally pause wrist-flick and backlight spins during chosen hours (initially 22:00–07:00). the seconds indicator keeps running.
 - **backlight trigger:** can also spin when the backlight wakes on Time 2, 2 Duo and Round 2 with compatible firmware.
-- **disconnect alert:** optional white cat on a black background and four vibration patterns when the phone disconnects. add 0–60 seconds of delay after Pebble confirms the disconnect (about 25 seconds). reconnecting cancels pending alerts and restores normal colors. includes an Ignore Quiet Time switch for vibration.
+- **disconnect alert:** optional white cat on a black background and four vibration patterns when the phone disconnects. Pebble filters brief drops for about 25 seconds. reconnecting restores normal colors. includes an Ignore Quiet Time switch for vibration.
 - **monochrome:** dithered spinner shading and an optional gray nose.
 
-works on Pebble, Steel, Time, Time Steel, Time Round, Pebble 2, Time 2, 2 Duo and Round 2. settings work offline and keep your preferences. weather needs internet; stale readings disappear after two hours.
+Works on Pebble, Steel, Time, Time Steel, Time Round, Pebble 2, Time 2, 2 Duo and Round 2. Settings work offline and keep your preferences. Weather needs internet; stale readings disappear after two hours.
 
-build with the Pebble SDK:
+The clock ticks once a minute; the seconds spinner only wakes at each spoke. Animations pause when the face is covered, and disabled triggers unsubscribe. [battery audit](docs/battery-audit.md)
+
+Build with the Pebble SDK:
 
 ```sh
 pebble build
 ```
 
-adapted by **yerex** (jerechinsky on GitHub). weather: [Open-Meteo](https://open-meteo.com/), CC BY 4.0. fonts and Clay: [credits and licenses](THIRD_PARTY_NOTICES.md). [upstream license status](UPSTREAM.md) · [privacy](PRIVACY.md) · [technical notes](docs/technical-notes.md)
+Adapted by **yerex** (jerechinsky on GitHub). Weather: [Open-Meteo](https://open-meteo.com/), CC BY 4.0. Fonts and Clay: [credits and licenses](THIRD_PARTY_NOTICES.md). [upstream license status](UPSTREAM.md) · [privacy](PRIVACY.md) · [technical notes](docs/technical-notes.md)

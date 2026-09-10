@@ -108,6 +108,16 @@
             "value": "12"
           }
         ]
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Seconds",
+        "id": "seconds-section"
       },
       {
         "type": "toggle",
@@ -118,7 +128,28 @@
       {
         "type": "text",
         "id": "seconds-note",
-        "defaultValue": "One turn per minute."
+        "defaultValue": "The spinner shows seconds by making one turn per minute."
+      },
+      {
+        "type": "toggle",
+        "messageKey": "NIGHT_SECONDS_PAUSE",
+        "label": "Pause seconds at night",
+        "defaultValue": false
+      },
+      {
+        "type": "text",
+        "id": "seconds-night-note",
+        "defaultValue": "Stops the seconds movement during your night schedule. The spinner stays visible."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Spinner animation",
+        "id": "animation-section"
       },
       {
         "type": "toggle",
@@ -182,13 +213,23 @@
       {
         "type": "toggle",
         "messageKey": "NIGHT_PAUSE",
-        "label": "Pause at night",
+        "label": "Pause animation at night",
         "defaultValue": false
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Night schedule",
+        "id": "night-section"
       },
       {
         "type": "select",
         "messageKey": "NIGHT_START",
-        "label": "Pause from",
+        "label": "Night starts",
         "defaultValue": "22",
         "options": [
           {
@@ -292,7 +333,7 @@
       {
         "type": "select",
         "messageKey": "NIGHT_END",
-        "label": "Resume at",
+        "label": "Night ends",
         "defaultValue": "7",
         "options": [
           {
@@ -396,7 +437,7 @@
       {
         "type": "text",
         "id": "night-note",
-        "defaultValue": "Seconds keep running. Uses local time; matching hours mean no pause."
+        "defaultValue": "Shared by both night options. Uses watch local time. Matching start and end times disable the pause."
       }
     ]
   },

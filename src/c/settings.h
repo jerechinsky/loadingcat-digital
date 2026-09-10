@@ -9,6 +9,7 @@ typedef struct {
   int32_t weather_location, show_weather, fahrenheit, weather_interval, gray_nose, second_hand;
   int32_t night_pause, night_start, night_end, disconnect_vibe, disconnect_pattern, disconnect_ignore_quiet, disconnect_invert;
   int32_t reconnect_vibe, reconnect_pattern;
+  int32_t night_seconds_pause;
 } Settings;
 
 typedef struct { const uint32_t *key; size_t offset; int32_t min, max; } SettingBinding;
@@ -21,6 +22,7 @@ static const SettingBinding SETTINGS_BINDINGS[] = {
   BIND(MESSAGE_KEY_DISCONNECT_VIBE,disconnect_vibe,0,1),
   BIND(MESSAGE_KEY_DISCONNECT_PATTERN,disconnect_pattern,0,3),
   BIND(MESSAGE_KEY_DISCONNECT_IGNORE_QUIET,disconnect_ignore_quiet,0,1),
+  BIND(MESSAGE_KEY_NIGHT_SECONDS_PAUSE,night_seconds_pause,0,1),
   BIND(MESSAGE_KEY_NIGHT_PAUSE,night_pause,0,1),
   BIND(MESSAGE_KEY_NIGHT_START,night_start,0,23),
   BIND(MESSAGE_KEY_NIGHT_END,night_end,0,23),

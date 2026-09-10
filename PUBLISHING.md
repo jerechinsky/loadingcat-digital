@@ -1,6 +1,14 @@
 # Publishing Loading Cat Digital
 
-Latest release: **1.5.6**, under **yerex**. Reduces spinner drawing calls without changing its pixels, unsubscribes inactive animation triggers, and removes duplicate weather requests and flash writes. Removes the extra disconnect-delay setting; Pebble's built-in connection filter still applies. The store description uses sentence capitalization and lowercase feature bullets.
+## Version 1.6.4
+
+Separate Seconds and Spinner animation settings, with independent night pauses and a shared local-time schedule. Existing animation night preferences are preserved; the new seconds pause defaults off. Built for all seven platforms. Settings UI and production timer lifecycle checks passed; physical-watch testing remains unverified.
+
+Release artifact: `loading-cat-digital-1.6.4.pbw`.
+
+## Earlier release history
+
+Historical release: **1.5.6**, under **yerex**. Reduces spinner drawing calls without changing its pixels, unsubscribes inactive animation triggers, and removes duplicate weather requests and flash writes. Removes the extra disconnect-delay setting; Pebble's built-in connection filter still applies. The store description uses sentence capitalization and lowercase feature bullets.
 
 The white-cat appearance and vibration are optional and off by default. Opening the face while already disconnected shows the chosen visual state without buzzing. Reconnecting restores normal colors. Existing saved extra delays are ignored; the retired message key remains reserved for compatibility.
 

@@ -67,12 +67,20 @@ static uint32_t minute_ms(void) {
   return (uint32_t)(seconds%60)*1000u+ms;
 }
 
-static bool animation_paused_now(void) {
-  if (!s_settings.night_pause) return false;
+static bool night_paused_now(bool enabled) {
+  if (!enabled) return false;
   time_t seconds; uint16_t ms;
   time_ms(&seconds, &ms);
   struct tm *local = localtime(&seconds);
   return local && night_paused(true, s_settings.night_start, s_settings.night_end, local->tm_hour);
+}
+
+static bool animation_paused_now(void) {
+  return night_paused_now(s_settings.night_pause);
+}
+
+static bool seconds_enabled_now(void) {
+  return s_settings.second_hand && !night_paused_now(s_settings.night_seconds_pause);
 }
 
 static void stop_spin(void) {
@@ -96,7 +104,7 @@ static void seconds_tick(void *context) {
 
 static void sync_seconds(void) {
   stop_seconds();
-  if(!s_focused || !s_settings.show_spinner || !s_settings.second_hand || s_spinning)return;
+  if(!s_focused || !s_settings.show_spinner || !seconds_enabled_now() || s_spinning)return;
   uint32_t ms=minute_ms();
   uint8_t phase=seconds_phase(ms,segment_count());
   bool changed=s_phase!=phase || s_direction!=1;
@@ -128,7 +136,7 @@ static void kick_spin(int8_t direction) {
   if (s_last_kick && now - s_last_kick < 650) return;
   s_last_kick = now;
   // Every kick, including a repeated flick, starts from the live seconds position.
-  if(s_settings.second_hand)s_phase=seconds_phase(minute_ms(),segment_count());
+  if(seconds_enabled_now())s_phase=seconds_phase(minute_ms(),segment_count());
   stop_seconds();
   stop_spin();
   s_spinning=true;

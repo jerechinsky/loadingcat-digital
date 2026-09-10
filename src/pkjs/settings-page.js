@@ -9,6 +9,10 @@ module.exports = function () {
     var backlight = ['emery', 'flint', 'gabbro'].indexOf(platform) >= 0;
     function enabled(key) { return !!Number(items[key].get()); }
     function visible(item, show) { if (item) item[show ? 'show' : 'hide'](); }
+    function sectionVisible(id, show) {
+      var heading = clay.getItemById(id);
+      if (heading) heading.$element[0].parentNode.style.display = show ? '' : 'none';
+    }
     var location=clay.meta.userData.createLocation();
     var status=clay.getItemById('place-status'),field=items.WEATHER_CITY.$manipulatorTarget[0];
     var list=document.createElement('div');list.className='place-suggestions';list.setAttribute('role','group');list.setAttribute('aria-label','Place suggestions');
@@ -79,8 +83,13 @@ module.exports = function () {
       var spinner = enabled('SHOW_SPINNER'), interaction = spinner && enabled('ANIMATE');
       ['SPOKES', 'SECOND_HAND', 'ANIMATE'].forEach(function (key) { visible(items[key], spinner); });
       ['FLICK_TRIGGER', 'SPIN_MOTION', 'SPIN_LENGTH', 'NIGHT_PAUSE'].forEach(function (key) { visible(items[key], interaction); });
-      ['NIGHT_START', 'NIGHT_END'].forEach(function (key) { visible(items[key], interaction && enabled('NIGHT_PAUSE')); });
-      visible(clay.getItemById('night-note'), interaction && enabled('NIGHT_PAUSE'));
+      sectionVisible('seconds-section', spinner);
+      sectionVisible('animation-section', spinner);
+      var seconds = spinner && enabled('SECOND_HAND');
+      visible(items.NIGHT_SECONDS_PAUSE, seconds);
+      visible(clay.getItemById('seconds-night-note'), seconds && enabled('NIGHT_SECONDS_PAUSE'));
+      var night = (interaction && enabled('NIGHT_PAUSE')) || (seconds && enabled('NIGHT_SECONDS_PAUSE'));
+      sectionVisible('night-section', night);
       visible(items.LIGHT_TRIGGER, interaction && backlight);
       visible(clay.getItemById('backlight-note'), interaction && backlight);
       visible(clay.getItemById('seconds-note'), spinner && enabled('SECOND_HAND'));
@@ -92,7 +101,7 @@ module.exports = function () {
     }
     items.GRAY_NOSE[monochrome ? 'enable' : 'disable']();
     items.LIGHT_TRIGGER[backlight ? 'enable' : 'disable']();
-    ['SHOW_SPINNER', 'SECOND_HAND', 'ANIMATE', 'SHOW_WEATHER', 'WEATHER_SOURCE', 'NIGHT_PAUSE', 'DISCONNECT_VIBE', 'RECONNECT_VIBE', 'DISCONNECT_INVERT'].forEach(function (key) { items[key].on('change', update); });
+    ['SHOW_SPINNER', 'SECOND_HAND', 'ANIMATE', 'SHOW_WEATHER', 'WEATHER_SOURCE', 'NIGHT_PAUSE', 'NIGHT_SECONDS_PAUSE', 'DISCONNECT_VIBE', 'RECONNECT_VIBE', 'DISCONNECT_INVERT'].forEach(function (key) { items[key].on('change', update); });
     update();
   });
 };

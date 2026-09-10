@@ -19,7 +19,7 @@ prefix = r'''
 #include "night.h"
 typedef struct AppTimer { bool active; uint64_t due; void (*fn)(void *); void *ctx; } AppTimer;
 static AppTimer timers[4], *s_spin_timer, *s_seconds_timer;
-static struct { int spokes, show_spinner, second_hand, animate, spin_motion, spin_length, night_pause, night_start, night_end; } s_settings;
+static struct { int spokes, show_spinner, second_hand, animate, spin_motion, spin_length, night_seconds_pause, night_pause, night_start, night_end; } s_settings;
 static uint8_t s_phase, s_step;
 static int8_t s_direction;
 static bool s_focused, s_spinning;
@@ -59,7 +59,7 @@ static void reset(int count,int motion,int length,uint32_t position) {
   s_phase=0; s_direction=1; draws=0; first_draw=-1;
   s_settings.spokes=count;s_settings.spin_motion=motion;s_settings.spin_length=length;
   s_settings.second_hand=1;s_settings.show_spinner=1;s_settings.animate=1;
-  s_settings.night_pause=0;s_settings.night_start=22;s_settings.night_end=7;
+  s_settings.night_seconds_pause=0;s_settings.night_pause=0;s_settings.night_start=22;s_settings.night_end=7;
   clock_ms=600000u+position;
   sync_seconds();
 }
@@ -109,6 +109,17 @@ int main(void) {
     kick_spin(direction);assert(s_spinning);advance(clock_ms+2000);
     assert(!s_spinning && s_phase==seconds_phase(minute_ms(),12)); // stops when night begins mid-spin
   }
+  for(int animation_pause=0;animation_pause<=1;++animation_pause) {
+    reset(12,1,0,0);s_settings.night_seconds_pause=1;s_settings.night_pause=animation_pause;
+    clock_ms=22u*3600000u-1000;sync_seconds();assert(s_seconds_timer);
+    advance(22u*3600000u);sync_seconds();assert(!s_seconds_timer);
+    int frozen=s_phase;advance(clock_ms+60000);sync_seconds();assert(s_phase==frozen && !s_seconds_timer);
+    kick_spin(1);assert(s_spinning==!animation_pause);
+    advance(clock_ms+4000);assert(!s_spinning && !s_seconds_timer);
+    clock_ms=7u*3600000u;sync_seconds();assert(s_seconds_timer && s_phase==0);
+    s_settings.night_start=7;s_settings.night_end=7;sync_seconds();assert(s_seconds_timer);
+  }
+  puts("Independent seconds pause passed: timer cancellation, frozen position, independent animation and morning resumption.");
   puts("Night pause passed: every hourly schedule, both trigger directions, 22:00/07:00 boundaries, mid-spin cancellation and continuing seconds.");
   printf("Spinner lifecycle passed: %d combinations, first and repeated kicks, live end position, minute rollover, debounce and seconds-off behavior.\n",cases);
 }

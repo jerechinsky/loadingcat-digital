@@ -5,7 +5,7 @@ A digital variant of "loading cat" by zbw / zbzbw. Really like the original, jus
 - type a place and tap a result, with city, region and country shown
 - a seconds spinner with 6, 7, 8, 10 or 12 spokes
 - wrist-flick and supported backlight spins, with two speeds and 2–4-second animations
-- optional nighttime pause for animations; seconds keep going
+- separate nighttime pauses for seconds and animations, with a shared schedule
 - optional disconnect and reconnect vibrations, with separate patterns and a Quiet Time override
 - optional white cat on a black background when disconnected
 - dithered spinner shading and an optional gray nose on monochrome watches

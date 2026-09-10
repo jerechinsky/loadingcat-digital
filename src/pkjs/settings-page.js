@@ -80,9 +80,9 @@ module.exports = function () {
       visible(items.DISCONNECT_IGNORE_QUIET, vibration);
       var connectionAlert=vibration || enabled('DISCONNECT_INVERT');
       visible(clay.getItemById('disconnect-note'), connectionAlert);
-      var spinner = enabled('SHOW_SPINNER'), interaction = spinner && enabled('ANIMATE');
-      ['SPOKES', 'SECOND_HAND', 'ANIMATE'].forEach(function (key) { visible(items[key], spinner); });
-      ['FLICK_TRIGGER', 'SPIN_MOTION', 'SPIN_LENGTH', 'NIGHT_PAUSE'].forEach(function (key) { visible(items[key], interaction); });
+      var spinner = enabled('SHOW_SPINNER'), interaction = spinner && (enabled('FLICK_TRIGGER') || (backlight && enabled('LIGHT_TRIGGER')));
+      ['SPOKES', 'SECOND_HAND', 'FLICK_TRIGGER'].forEach(function (key) { visible(items[key], spinner); });
+      ['SPIN_MOTION', 'SPIN_LENGTH', 'NIGHT_PAUSE'].forEach(function (key) { visible(items[key], interaction); });
       sectionVisible('seconds-section', spinner);
       sectionVisible('animation-section', spinner);
       var seconds = spinner && enabled('SECOND_HAND');
@@ -90,8 +90,8 @@ module.exports = function () {
       visible(clay.getItemById('seconds-night-note'), seconds && enabled('NIGHT_SECONDS_PAUSE'));
       var night = (interaction && enabled('NIGHT_PAUSE')) || (seconds && enabled('NIGHT_SECONDS_PAUSE'));
       sectionVisible('night-section', night);
-      visible(items.LIGHT_TRIGGER, interaction && backlight);
-      visible(clay.getItemById('backlight-note'), interaction && backlight);
+      visible(items.LIGHT_TRIGGER, spinner && backlight);
+      visible(clay.getItemById('backlight-note'), spinner && backlight && enabled('LIGHT_TRIGGER'));
       visible(clay.getItemById('seconds-note'), spinner && enabled('SECOND_HAND'));
       visible(items.GRAY_NOSE, monochrome);
       ['FAHRENHEIT', 'WEATHER_INTERVAL', 'WEATHER_SOURCE'].forEach(function (key) { visible(items[key], enabled('SHOW_WEATHER')); });
@@ -101,7 +101,7 @@ module.exports = function () {
     }
     items.GRAY_NOSE[monochrome ? 'enable' : 'disable']();
     items.LIGHT_TRIGGER[backlight ? 'enable' : 'disable']();
-    ['SHOW_SPINNER', 'SECOND_HAND', 'ANIMATE', 'SHOW_WEATHER', 'WEATHER_SOURCE', 'NIGHT_PAUSE', 'NIGHT_SECONDS_PAUSE', 'DISCONNECT_VIBE', 'RECONNECT_VIBE', 'DISCONNECT_INVERT'].forEach(function (key) { items[key].on('change', update); });
+    ['SHOW_SPINNER', 'SECOND_HAND', 'FLICK_TRIGGER', 'LIGHT_TRIGGER', 'SHOW_WEATHER', 'WEATHER_SOURCE', 'NIGHT_PAUSE', 'NIGHT_SECONDS_PAUSE', 'DISCONNECT_VIBE', 'RECONNECT_VIBE', 'DISCONNECT_INVERT'].forEach(function (key) { items[key].on('change', update); });
     update();
   });
 };

@@ -1,5 +1,9 @@
 # Publishing Loading Cat Digital
 
+## Version 1.6.5
+
+Removed the redundant Animate spinner switch. Wrist-flick and supported backlight triggers now control animation directly. Speed, duration and animation night pause hide when both triggers are off; the backlight hint only appears when backlight spins are enabled. Existing disabled animation preferences migrate to both triggers off when settings are loaded. The reserved ANIMATE message key remains for compatibility.
+
 ## Version 1.6.4
 
 Separate Seconds and Spinner animation settings, with independent night pauses and a shared local-time schedule. Existing animation night preferences are preserved; the new seconds pause defaults off. Built for all seven platforms. Settings UI and production timer lifecycle checks passed; physical-watch testing remains unverified.

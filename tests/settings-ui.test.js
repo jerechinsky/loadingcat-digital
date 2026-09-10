@@ -16,9 +16,9 @@ function phone(saved={},platform='emery'){
  return {fire,store,messages,html(){fire('showConfiguration');assert(url.startsWith('data:text/html'));return decodeURIComponent(url.slice(url.indexOf(',')+1));}};
 }
 (async()=>{
- assert.equal(Object.keys(specs).length,28);
+ assert.equal(Object.keys(specs).length,27);
  assert.doesNotMatch(bundle,/cat-preview-canvas|cat-preview-seconds|Live watchface preview/,'Development preview is absent from the shipped bundle');
- for(const retired of ['STYLE','SHOW_TIME','TIME_LAYOUT','FONT_STYLE','COMPACT','DARK_TEXT','OUTLINE'])assert(!Object.hasOwn(specs,retired),retired+' is not a public setting');
+ for(const retired of ['STYLE','SHOW_TIME','TIME_LAYOUT','FONT_STYLE','COMPACT','DARK_TEXT','OUTLINE','ANIMATE'])assert(!Object.hasOwn(specs,retired),retired+' is not a public setting');
  const browser=await chromium.launch({headless:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});
  try{
  const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1}),errors=[],requests=[];
@@ -32,7 +32,7 @@ function phone(saved={},platform='emery'){
  async function set(k,v){if(specs[k].type==='toggle')await field(k).evaluate((e,v)=>{e.checked=!!v;e.dispatchEvent(new Event('change',{bubbles:true}));},v);else if(k==='WEATHER_PLACE')await field(k).evaluate((e,v)=>e.value=v,v);else if(specs[k].type==='input')await field(k).fill(v);else await field(k).selectOption(String(v));}
  async function save(ph){await page.getByRole('button',{name:'Save settings'}).click();await page.waitForURL('https://settings.test/close#**');ph.fire('webviewclosed',{response:page.url().split('#')[1]});return JSON.parse(ph.store['loading-cat-settings-v1']);}
  async function checkStock(){
-  assert.equal(await page.locator('input[data-manipulator-target],select[data-manipulator-target]').count(),28);
+  assert.equal(await page.locator('input[data-manipulator-target],select[data-manipulator-target]').count(),27);
   assert.equal(await page.locator('canvas,.cat-preview,.cat-reset,input[type=time],input[type=range],[id^="cat-preview-"]').count(),0);
   assert.equal(await page.getByRole('button',{includeHidden:true}).count(),1,'Save is the only form button before search results');
   assert.equal(await page.getByRole('button',{name:'Save settings'}).count(),1);
@@ -60,14 +60,14 @@ function phone(saved={},platform='emery'){
  assert(!await row('DISCONNECT_PATTERN').isVisible());await set('DISCONNECT_INVERT',0);
  assert(!await row('NIGHT_START').isVisible());
  await set('NIGHT_PAUSE',1);assert(await row('NIGHT_START').isVisible());assert(await row('NIGHT_END').isVisible());
- await set('ANIMATE',0);assert(!await row('NIGHT_START').isVisible());await set('ANIMATE',1);
+ await set('FLICK_TRIGGER',0);await set('LIGHT_TRIGGER',0);assert(!await row('NIGHT_START').isVisible());await set('FLICK_TRIGGER',1);await set('LIGHT_TRIGGER',1);
  await set('NIGHT_PAUSE',0);
  assert.equal(await value('NIGHT_SECONDS_PAUSE'),0);
- await set('ANIMATE',0);await set('NIGHT_SECONDS_PAUSE',1);
+ await set('FLICK_TRIGGER',0);await set('LIGHT_TRIGGER',0);await set('NIGHT_SECONDS_PAUSE',1);
  assert(await row('NIGHT_START').isVisible(),'Seconds alone exposes shared schedule');
  await set('SECOND_HAND',0);assert(!await row('NIGHT_START').isVisible());
  await set('SECOND_HAND',1);assert(await row('NIGHT_START').isVisible());
- await set('NIGHT_SECONDS_PAUSE',0);await set('ANIMATE',1);
+ await set('NIGHT_SECONDS_PAUSE',0);await set('FLICK_TRIGGER',1);await set('LIGHT_TRIGGER',1);
 
  const options=key=>field(key).locator('option').evaluateAll(es=>es.map(e=>[e.value,e.textContent]));
  assert.deepEqual(await options('SPOKES'),[['6','6'],['7','7'],['8','8'],['10','10'],['12','12']]);
@@ -83,31 +83,41 @@ function phone(saved={},platform='emery'){
   const mono=['aplite','diorite','flint'].includes(model),light=['emery','flint','gabbro'].includes(model);
   assert.equal(await row('GRAY_NOSE').isVisible(),mono);assert.equal(await field('GRAY_NOSE').isEnabled(),mono);
   assert.equal(await row('LIGHT_TRIGGER').isVisible(),light);assert.equal(await field('LIGHT_TRIGGER').isEnabled(),light);
-  assert.equal(await page.getByText('The Back button and wrist flicks can both wake the light and start a spin, even with the wrist-flick option off. Pebble cannot tell them apart.',{exact:true}).isVisible(),light);
+  assert.equal(await page.getByText('The Back button and wrist flicks can both wake the light and start a spin, even with the wrist-flick option off. Pebble cannot tell them apart.',{exact:true}).isVisible(),false);
   await set('SHOW_SPINNER',0);assert(await row('DISCONNECT_VIBE').isVisible());
-  for(const key of ['SPOKES','SECOND_HAND','ANIMATE','FLICK_TRIGGER','LIGHT_TRIGGER','SPIN_MOTION','SPIN_LENGTH'])assert(!await row(key).isVisible(),key+' hides with spinner');
-  assert(!await page.getByText('One turn per minute.',{exact:true}).isVisible());
-  await set('SHOW_SPINNER',1);await set('ANIMATE',0);
-  for(const key of ['FLICK_TRIGGER','LIGHT_TRIGGER','SPIN_MOTION','SPIN_LENGTH'])assert(!await row(key).isVisible(),key+' hides with interaction');
+  for(const key of ['SPOKES','SECOND_HAND','FLICK_TRIGGER','LIGHT_TRIGGER','SPIN_MOTION','SPIN_LENGTH'])assert(!await row(key).isVisible(),key+' hides with spinner');
+  assert(!await page.getByText('The spinner shows seconds by making one turn per minute.',{exact:true}).isVisible());
+  await set('SHOW_SPINNER',1);await set('FLICK_TRIGGER',0);await set('LIGHT_TRIGGER',0);
+  for(const key of ['SPIN_MOTION','SPIN_LENGTH','NIGHT_PAUSE'])assert(!await row(key).isVisible(),key+' hides with interaction');
+  await set('LIGHT_TRIGGER',1);assert.equal(await row('SPIN_MOTION').isVisible(),light,'Only supported backlight triggers enable animation options');await set('LIGHT_TRIGGER',0);
   assert(await row('SECOND_HAND').isVisible(),'Seconds remain independent of interaction animation');
-  await set('SECOND_HAND',0);assert(!await page.getByText('One turn per minute.',{exact:true}).isVisible());await set('SECOND_HAND',1);await set('ANIMATE',1);
+  await set('SECOND_HAND',0);assert(!await page.getByText('The spinner shows seconds by making one turn per minute.',{exact:true}).isVisible());await set('SECOND_HAND',1);await set('FLICK_TRIGGER',1);await set('LIGHT_TRIGGER',0);
   await set('SHOW_WEATHER',0);assert(!await row('FAHRENHEIT').isVisible());assert(!await row('WEATHER_INTERVAL').isVisible());assert(await row('NUMERAL_FONT').isVisible());await set('SHOW_WEATHER',1);
   assert(await row('FAHRENHEIT').isVisible());assert(await row('WEATHER_INTERVAL').isVisible());
   const saved=await save(ph);assert.deepEqual(saved,preferences,'Hidden/disabled preferences survive Save on '+model);
   ph=phone(ph.store,model);await load(ph.html());assert.equal(await value('LIGHT_TRIGGER'),0,'False backlight preference survives reopen on '+model);assert.equal(await value('GRAY_NOSE'),nose,'Nose preference survives reopen on '+model);
   capabilityChecks.push({model,monochrome_nose:mono,backlight:light,hidden_preferences_preserved:true});
  }
+ // Legacy master-off preferences become both triggers off, then can be enabled normally.
+ for(const oldAnimate of [0,false,'0']) {
+  ph=phone({'loading-cat-settings-v1':JSON.stringify({...defaults,ANIMATE:oldAnimate,FLICK_TRIGGER:1,LIGHT_TRIGGER:1})},'emery');
+  await load(ph.html());assert.equal(await value('FLICK_TRIGGER'),0);assert.equal(await value('LIGHT_TRIGGER'),0);
+  assert(!await row('SPIN_MOTION').isVisible());assert(await row('FLICK_TRIGGER').isVisible());assert(await row('LIGHT_TRIGGER').isVisible());
+  await set('LIGHT_TRIGGER',1);assert(await row('SPIN_MOTION').isVisible());
+  await save(ph);assert.equal(ph.messages.at(-1).ANIMATE,1);
+  ph=phone(ph.store,'emery');await load(ph.html());assert.equal(await value('LIGHT_TRIGGER'),1);
+ }
  // Exercise every legal choice on a model where its corresponding control applies.
  ph=phone({},'flint');await load(ph.html());
  const exercised={};
  for(const [k,spec] of Object.entries(specs)){
   await set('WEATHER_SOURCE',1);
-  for(const parent of ['SHOW_SPINNER','ANIMATE','SHOW_WEATHER','DISCONNECT_VIBE','RECONNECT_VIBE'])await set(parent,1);
+  for(const parent of ['SHOW_SPINNER','FLICK_TRIGGER','LIGHT_TRIGGER','SHOW_WEATHER','DISCONNECT_VIBE','RECONNECT_VIBE'])await set(parent,1);
   const choices=k==='WEATHER_PLACE'?['']:spec.type==='input'?['','Prague, CZ','New York, US']:spec.type==='toggle'?[0,1]:spec.options.map(o=>Number(o.value));
   for(const choice of choices){await set(k,choice);assert.equal(await value(k),choice,k+' choice');}
   exercised[k]=choices;
  }
- const expected={NIGHT_SECONDS_PAUSE:1,WEATHER_PLACE:'',RECONNECT_VIBE:1,RECONNECT_PATTERN:1,WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ',DISCONNECT_INVERT:1,DISCONNECT_VIBE:1,DISCONNECT_PATTERN:3,DISCONNECT_IGNORE_QUIET:1,NIGHT_PAUSE:1,NIGHT_START:23,NIGHT_END:8,SECOND_HAND:0,GRAY_NOSE:0,SHOW_WEATHER:0,SHOW_SPINNER:0,NUMERAL_FONT:8,TIME_FORMAT:2,LEADING_ZERO:0,SPOKES:12,SPIN_MOTION:0,ANIMATE:0,FLICK_TRIGGER:0,LIGHT_TRIGGER:0,SPIN_LENGTH:2,FAHRENHEIT:1,WEATHER_INTERVAL:60};
+ const expected={NIGHT_SECONDS_PAUSE:1,WEATHER_PLACE:'',RECONNECT_VIBE:1,RECONNECT_PATTERN:1,WEATHER_SOURCE:1,WEATHER_CITY:'Prague, CZ',DISCONNECT_INVERT:1,DISCONNECT_VIBE:1,DISCONNECT_PATTERN:3,DISCONNECT_IGNORE_QUIET:1,NIGHT_PAUSE:1,NIGHT_START:23,NIGHT_END:8,SECOND_HAND:0,GRAY_NOSE:0,SHOW_WEATHER:0,SHOW_SPINNER:0,NUMERAL_FONT:8,TIME_FORMAT:2,LEADING_ZERO:0,SPOKES:12,SPIN_MOTION:0,FLICK_TRIGGER:0,LIGHT_TRIGGER:0,SPIN_LENGTH:2,FAHRENHEIT:1,WEATHER_INTERVAL:60};
  // Set hidden select values directly, as saved preferences can remain hidden.
  for(const [k,v] of Object.entries(expected))await field(k).evaluate((e,v)=>{if(e.type==='checkbox')e.checked=!!v;else e.value=String(v);e.dispatchEvent(new Event('change',{bubbles:true}));},v);
  assert.deepEqual(await save(ph),expected);ph=phone(ph.store,'flint');await load(ph.html());for(const [k,v] of Object.entries(expected))assert.equal(await value(k),v,k+' persists');
@@ -115,11 +125,12 @@ function phone(saved={},platform='emery'){
  await load(defaultHtml);await set('DISCONNECT_VIBE',1);await set('RECONNECT_VIBE',1);await row('RECONNECT_PATTERN').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,'connection-settings.png')});
  await load(defaultHtml);await page.evaluate(()=>scrollTo(0,0));
  await page.screenshot({path:path.join(out,'settings-full.png'),fullPage:true});await page.screenshot({path:path.join(out,'settings.png')});await page.screenshot({path:path.join(out,'settings-preview.png')});
+ await set('FLICK_TRIGGER',0);await set('LIGHT_TRIGGER',0);await row('FLICK_TRIGGER').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,'animation-disabled.png')});
  const demo=defaultHtml.replace('window.returnTo="pebblejs://close#"','window.returnTo="#"');
  await load(demo);await checkStock();
  fs.writeFileSync(path.join(out,'settings.html'),demo);fs.writeFileSync(path.join(out,'settings-preview.html'),demo);
  assert(requests.every(url=>url.startsWith('https://photon.komoot.io/api/')),'Only typed place searches can contact the network');assert.deepEqual(errors,[]);
- fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify({settings:28,stock_clay:true,preview_absent:true,custom_chrome_absent:true,models:7,breakpoints:[320,390,480],offline:true,save_and_reopen:true,all_options:true,conditional_visibility:true,model_capabilities:true,hidden_preferences_preserved:true,capability_checks:capabilityChecks,choices_tested:exercised},null,2)+'\n');
- console.log('Stock Clay checks passed:27 visible settings plus saved place, all choices,7 model capabilities, conditional visibility, hidden preference persistence, offline load and responsive form.');
+ fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify({settings:27,stock_clay:true,preview_absent:true,custom_chrome_absent:true,models:7,breakpoints:[320,390,480],offline:true,save_and_reopen:true,all_options:true,conditional_visibility:true,model_capabilities:true,hidden_preferences_preserved:true,capability_checks:capabilityChecks,choices_tested:exercised},null,2)+'\n');
+ console.log('Stock Clay checks passed:26 visible settings plus saved place, all choices,7 model capabilities, conditional visibility, hidden preference persistence, offline load and responsive form.');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

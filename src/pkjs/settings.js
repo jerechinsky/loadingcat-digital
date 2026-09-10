@@ -27,7 +27,15 @@ function apply(input) {
   var selected=location.selection(values);
   values.WEATHER_PLACE=selected?location.encodeSelection(selected,values.WEATHER_CITY):'';
 }
-try { apply(JSON.parse(localStorage.getItem('loading-cat-settings-v1') || '{}')); } catch (e) {}
+try {
+  var saved = JSON.parse(localStorage.getItem('loading-cat-settings-v1') || '{}');
+  apply(saved);
+  // Preserve the old master switch's off state as two disabled triggers.
+  if (saved && (saved.ANIMATE === 0 || saved.ANIMATE === false || saved.ANIMATE === '0')) {
+    values.FLICK_TRIGGER = 0;
+    values.LIGHT_TRIGGER = 0;
+  }
+} catch (e) {}
 exports.values = values;
 exports.save = function (input) {
   apply(input);
@@ -41,6 +49,8 @@ exports.watchValues = function () {
   Object.keys(values).forEach(function (key) {
     if(key!=='WEATHER_SOURCE' && key!=='WEATHER_CITY' && key!=='WEATHER_PLACE')payload[key]=values[key];
   });
+  // Keep the reserved legacy key for watch compatibility. Triggers now control spins.
+  payload.ANIMATE=1;
   payload.WEATHER_LOCATION_ID=location.id(location.scope(values));
   return payload;
 };

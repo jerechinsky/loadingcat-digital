@@ -153,12 +153,6 @@
       },
       {
         "type": "toggle",
-        "messageKey": "ANIMATE",
-        "label": "Animate spinner",
-        "defaultValue": true
-      },
-      {
-        "type": "toggle",
         "messageKey": "FLICK_TRIGGER",
         "label": "Spin on wrist flick",
         "defaultValue": true

@@ -148,7 +148,7 @@ p.events.webviewclosed({response:JSON.stringify({GRAY_NOSE:{value:'2'}})});asser
 p=phone({settings:{SHOW_WEATHER:0,GRAY_NOSE:0,ANIMATE:0}});p.events.ready();assert.equal(p.messages[0].SECOND_HAND,1);
 p.events.webviewclosed({response:JSON.stringify({SECOND_HAND:{value:false}})});assert.equal(p.savedSettings.SECOND_HAND,0);
 p.events.webviewclosed({response:JSON.stringify({SECOND_HAND:{value:'2'}})});assert.equal(p.savedSettings.SECOND_HAND,0,'Invalid seconds values must not re-enable the setting');
-assert.equal(p.savedSettings.GRAY_NOSE,0);assert.equal(p.savedSettings.ANIMATE,0);assert.equal(p.savedSettings.SHOW_WEATHER,0);
+assert.equal(p.savedSettings.GRAY_NOSE,0);assert.equal(p.savedSettings.ANIMATE,undefined);assert.equal(p.savedSettings.FLICK_TRIGGER,0);assert.equal(p.savedSettings.LIGHT_TRIGGER,0);assert.equal(p.messages[0].ANIMATE,1);assert.equal(p.savedSettings.SHOW_WEATHER,0);
 // A rejected count must not overwrite a currently supported selection either.
 p=phone({settings:{SPOKES:7}});p.events.webviewclosed({response:JSON.stringify({SPOKES:11})});assert.equal(p.savedSettings.SPOKES,7);
 const keys=JSON.parse(fs.readFileSync(__dirname+'/../package.json','utf8')).pebble.messageKeys;
